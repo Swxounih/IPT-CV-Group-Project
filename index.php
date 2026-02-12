@@ -15,7 +15,9 @@ if (!isset($_SESSION['resume_data'])) {
 }
 
 // Redirect to first step
-header('Location: personal-information.php');
+// old 
+// header('Location: personal-information.php');
+header('Location: search-create.php');
 exit();
 ?>
 
