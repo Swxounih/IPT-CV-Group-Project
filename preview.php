@@ -1,15 +1,12 @@
 <?php
 session_start();
+require_once 'config.php';
 
-// Get all resume data
-$data = $_SESSION['resume_data'] ?? array();
-$personal = $data['personal_info'] ?? array();
-$objective = $data['objective'] ?? '';
-$education = $data['education'] ?? array();
-$work_experience = $data['work_experience'] ?? array();
-$skills = $data['skills'] ?? array();
-$interests = $data['interests'] ?? '';
-$references = $data['references'] ?? array();
+// Check if personal info exists
+if (!isset($_SESSION['resume_data']['personal_info_id'])) {
+    header('Location: personal-information.php');
+    exit();
+}
 
 // Handle reset
 if (isset($_GET['reset'])) {
@@ -17,6 +14,75 @@ if (isset($_GET['reset'])) {
     header('Location: index.php');
     exit();
 }
+
+// Get all resume data from database
+$conn = getDBConnection();
+$personal_info_id = $_SESSION['resume_data']['personal_info_id'];
+
+// Get personal information
+$sql = "SELECT * FROM personal_information WHERE id = $personal_info_id";
+$result = $conn->query($sql);
+$personal = $result->fetch_assoc();
+
+// Get career objective
+$sql = "SELECT objective FROM career_objectives WHERE personal_info_id = $personal_info_id";
+$result = $conn->query($sql);
+$objective = '';
+if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $objective = $row['objective'];
+}
+
+// Get education
+$sql = "SELECT * FROM education WHERE personal_info_id = $personal_info_id ORDER BY start_date DESC";
+$result = $conn->query($sql);
+$education = array();
+if ($result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        $education[] = $row;
+    }
+}
+
+// Get work experience
+$sql = "SELECT * FROM work_experience WHERE personal_info_id = $personal_info_id ORDER BY start_date DESC";
+$result = $conn->query($sql);
+$work_experience = array();
+if ($result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        $work_experience[] = $row;
+    }
+}
+
+// Get skills
+$sql = "SELECT * FROM skills WHERE personal_info_id = $personal_info_id";
+$result = $conn->query($sql);
+$skills = array();
+if ($result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        $skills[] = $row;
+    }
+}
+
+// Get interests
+$sql = "SELECT interests FROM interests WHERE personal_info_id = $personal_info_id";
+$result = $conn->query($sql);
+$interests = '';
+if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $interests = $row['interests'];
+}
+
+// Get references
+$sql = "SELECT * FROM reference WHERE personal_info_id = $personal_info_id";
+$result = $conn->query($sql);
+$references = array();
+if ($result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        $references[] = $row;
+    }
+}
+
+closeDBConnection($conn);
 ?>
 <!DOCTYPE html>
 <html lang="en">

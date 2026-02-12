@@ -1,40 +1,67 @@
 <?php
 session_start();
+require_once 'config.php';
+
+// Check if personal info exists
+if (!isset($_SESSION['resume_data']['personal_info_id'])) {
+    header('Location: personal-information.php');
+    exit();
+}
 
 // Handle deleting a skill entry
 if (isset($_GET['delete'])) {
-    $index = (int)$_GET['delete'];
-    if (isset($_SESSION['resume_data']['skills'][$index])) {
-        array_splice($_SESSION['resume_data']['skills'], $index, 1);
-    }
+    $conn = getDBConnection();
+    $id = (int)$_GET['delete'];
+    
+    $sql = "DELETE FROM skills WHERE id = $id AND personal_info_id = " . $_SESSION['resume_data']['personal_info_id'];
+    $conn->query($sql);
+    
+    closeDBConnection($conn);
     header('Location: skills.php');
     exit();
 }
 
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $conn = getDBConnection();
+    $personal_info_id = $_SESSION['resume_data']['personal_info_id'];
+    
     if (isset($_POST['add_skill'])) {
         // Add new skill entry
-        $skill = array(
-            'skill_name' => $_POST['skills'] ?? '',
-            'level' => $_POST['level'] ?? ''
-        );
+        $skill_name = $conn->real_escape_string($_POST['skills'] ?? '');
+        $level = $conn->real_escape_string($_POST['level'] ?? '');
         
-        if (!isset($_SESSION['resume_data']['skills'])) {
-            $_SESSION['resume_data']['skills'] = array();
+        $sql = "INSERT INTO skills (personal_info_id, skill_name, level) 
+                VALUES ('$personal_info_id', '$skill_name', '$level')";
+        
+        if ($conn->query($sql) === TRUE) {
+            closeDBConnection($conn);
+            header('Location: skills.php');
+            exit();
+        } else {
+            echo "Error: " . $sql . "<br>" . $conn->error;
         }
-        $_SESSION['resume_data']['skills'][] = $skill;
-        
-        header('Location: skills.php');
-        exit();
     } elseif (isset($_POST['next'])) {
+        closeDBConnection($conn);
         header('Location: interests.php');
         exit();
     }
+    
+    closeDBConnection($conn);
 }
 
-// Get existing skills
-$skills_list = $_SESSION['resume_data']['skills'] ?? array();
+// Get existing skills from database
+$conn = getDBConnection();
+$personal_info_id = $_SESSION['resume_data']['personal_info_id'];
+$sql = "SELECT * FROM skills WHERE personal_info_id = $personal_info_id";
+$result = $conn->query($sql);
+$skills_list = array();
+if ($result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        $skills_list[] = $row;
+    }
+}
+closeDBConnection($conn);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -61,13 +88,13 @@ $skills_list = $_SESSION['resume_data']['skills'] ?? array();
     <?php if (!empty($skills_list)): ?>
         <div style="margin-bottom: 30px;">
             <h4>Added Skills:</h4>
-            <?php foreach ($skills_list as $index => $skill): ?>
+            <?php foreach ($skills_list as $skill): ?>
                 <div class="skill-entry">
                     <div>
                         <strong><?php echo htmlspecialchars($skill['skill_name']); ?></strong> - 
                         <span style="color: #666;"><?php echo htmlspecialchars($skill['level']); ?></span>
                     </div>
-                    <a href="skills.php?delete=<?php echo $index; ?>" onclick="return confirm('Are you sure you want to delete this skill?');">
+                    <a href="skills.php?delete=<?php echo $skill['id']; ?>" onclick="return confirm('Are you sure you want to delete this skill?');">
                         <button type="button" class="delete-btn">Delete</button>
                     </a>
                 </div>

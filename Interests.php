@@ -1,15 +1,54 @@
 <?php
 session_start();
+require_once 'config.php';
 
-// Process form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $_SESSION['resume_data']['interests'] = $_POST['interests'] ?? '';
-    header('Location: references.php');
+// Check if personal info exists
+if (!isset($_SESSION['resume_data']['personal_info_id'])) {
+    header('Location: personal-information.php');
     exit();
 }
 
-// Get existing data
-$interests = $_SESSION['resume_data']['interests'] ?? '';
+// Process form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $conn = getDBConnection();
+    
+    $personal_info_id = $_SESSION['resume_data']['personal_info_id'];
+    $interests = $conn->real_escape_string($_POST['interests'] ?? '');
+    
+    // Check if interests already exist for this user
+    $check_sql = "SELECT id FROM interests WHERE personal_info_id = $personal_info_id";
+    $check_result = $conn->query($check_sql);
+    
+    if ($check_result->num_rows > 0) {
+        // Update existing
+        $sql = "UPDATE interests SET interests = '$interests' WHERE personal_info_id = $personal_info_id";
+    } else {
+        // Insert new
+        $sql = "INSERT INTO interests (personal_info_id, interests) VALUES ('$personal_info_id', '$interests')";
+    }
+    
+    if ($conn->query($sql) === TRUE) {
+        $_SESSION['resume_data']['interests'] = $_POST['interests'] ?? '';
+        closeDBConnection($conn);
+        header('Location: references.php');
+        exit();
+    } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+        closeDBConnection($conn);
+    }
+}
+
+// Get existing data from database
+$conn = getDBConnection();
+$personal_info_id = $_SESSION['resume_data']['personal_info_id'];
+$sql = "SELECT interests FROM interests WHERE personal_info_id = $personal_info_id";
+$result = $conn->query($sql);
+$interests = '';
+if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $interests = $row['interests'];
+}
+closeDBConnection($conn);
 ?>
 <!DOCTYPE html>
 <html lang="en">

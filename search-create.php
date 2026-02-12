@@ -1,5 +1,6 @@
 <?php
-
+session_start();
+require_once 'config.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -90,35 +91,6 @@
       margin-bottom: 15px;
     }
     
-    label { 
-      display: block; 
-      margin-top: 15px; 
-      font-weight: bold;
-      color: #2c3e50;
-    }
-    
-    input[type="text"], 
-    input[type="email"], 
-    input[type="number"],
-    select, 
-    textarea { 
-      width: 100%; 
-      padding: 10px; 
-      margin-top: 5px; 
-      border: 1px solid #bdc3c7;
-      border-radius: 4px;
-      font-family: Arial, sans-serif;
-    }
-    
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-    
-    .form-group {
-      margin-bottom: 20px;
-    }
-    
     .btn-container { 
       display: flex; 
       gap: 10px;
@@ -182,6 +154,23 @@
       padding: 15px;
       margin-bottom: 10px;
       border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .result-item:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transform: translateX(5px);
+    }
+    
+    .result-item h4 {
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+    
+    .result-item p {
+      color: #666;
+      margin: 5px 0;
     }
     
     /* Responsive Design */
@@ -222,45 +211,6 @@
         padding: 12px;
       }
     }
-    
-    /*@media (max-width: 480px) {
-      .nav-btn {
-        padding: 8px 15px;
-        font-size: 13px;
-      }
-      
-      .section-content {
-        padding: 15px;
-        border-radius: 0;
-      }
-      
-      h1 {
-        font-size: 20px;
-      }
-      
-      h3 {
-        font-size: 16px;
-      }
-      
-      .btn-container button {
-        padding: 12px 20px;
-        font-size: 14px;
-        min-width: 100%;
-        width: 100%;
-      }
-      
-      input[type="text"], 
-      input[type="email"], 
-      input[type="number"],
-      select, 
-      textarea {
-        padding: 8px;
-      }
-      
-      .navbar {
-        padding: 10px 0;
-      }
-    }*/
   </style>
 </head>
 
@@ -299,7 +249,6 @@
         
         <div class="btn-container">
             <button type="button" onclick="window.location.href='personal-information.php'">Create your own CV</button>
-          
         </div>
       </div>
     </section>
@@ -310,7 +259,7 @@
         <h1>Search Personal CV</h1>
         
         <div class="search-box">
-          <input type="text" id="searchInput" placeholder="Enter search term (name)">
+          <input type="text" id="searchInput" placeholder="Enter search term (name, email, or skills)">
           <button onclick="performSearch()">Search</button>
         </div>
         
@@ -352,13 +301,47 @@
         return;
       }
       
-      // Sample search results (you can replace this with actual database queries)
-      resultsView.innerHTML = `
-        <div class="result-item">
-          <strong>Search Results for: "${searchTerm}"</strong>
-          <p style="margin-top: 10px;">No results found. Maybe you dont have existing CVs data or refine your search.</p>
-        </div>
-      `;
+      // Show loading
+      resultsView.innerHTML = '<p style="color: #7f8c8d; text-align: center;">Searching...</p>';
+      
+      // AJAX call to search
+      fetch('search_ajax.php?term=' + encodeURIComponent(searchTerm))
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.results.length > 0) {
+            let html = '<h4>Search Results for: "' + searchTerm + '"</h4>';
+            data.results.forEach(result => {
+              html += `
+                <div class="result-item" onclick="viewResume(${result.id})">
+                  <h4>${result.name}</h4>
+                  <p><strong>Email:</strong> ${result.email}</p>
+                  <p><strong>Phone:</strong> ${result.phone}</p>
+                  <p><strong>Address:</strong> ${result.address}</p>
+                </div>
+              `;
+            });
+            resultsView.innerHTML = html;
+          } else {
+            resultsView.innerHTML = `
+              <div class="result-item">
+                <strong>Search Results for: "${searchTerm}"</strong>
+                <p style="margin-top: 10px;">No results found. Please refine your search.</p>
+              </div>
+            `;
+          }
+        })
+        .catch(error => {
+          resultsView.innerHTML = `
+            <div class="result-item">
+              <strong>Error</strong>
+              <p style="margin-top: 10px;">An error occurred while searching. Please try again.</p>
+            </div>
+          `;
+        });
+    }
+    
+    function viewResume(id) {
+      window.location.href = 'view_resume.php?id=' + id;
     }
     
     // Allow Enter key to search
