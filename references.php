@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: references.php');
         exit();
     } elseif (isset($_POST['submit'])) {
-        header('Location: preview.php');
+        header('Location: save_resume.php');
         exit();
     }
 }
