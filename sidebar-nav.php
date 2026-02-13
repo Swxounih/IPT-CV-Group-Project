@@ -4,7 +4,7 @@
 
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <h2>📄 CV Builder</h2>
+        <h2>CV Builder</h2>
         <p>Step-by-step Resume Creation</p>
     </div>
     
