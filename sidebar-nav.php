@@ -13,12 +13,12 @@
         <ul>
             <li>
                 <a href="personal-information.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'personal-information.php') ? 'active' : ''; ?>">
-                    <i>👤</i> Personal Information
+                Personal Information
                 </a>
             </li>
             <li>
                 <a href="career-objectives.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'career-objectives.php') ? 'active' : ''; ?>">
-                    <i>🎯</i> Career Objectives
+                 Career Objectives
                 </a>
             </li>
         </ul>
@@ -27,17 +27,17 @@
         <ul>
             <li>
                 <a href="education.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'education.php') ? 'active' : ''; ?>">
-                    <i>🎓</i> Education
+                  Education
                 </a>
             </li>
             <li>
                 <a href="work-experience.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'work-experience.php') ? 'active' : ''; ?>">
-                    <i>💼</i> Work Experience
+                 Work Experience
                 </a>
             </li>
             <li>
                 <a href="skills.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'skills.php') ? 'active' : ''; ?>">
-                    <i>⚡</i> Skills
+                 Skills
                 </a>
             </li>
         </ul>
@@ -46,12 +46,12 @@
         <ul>
             <li>
                 <a href="interests.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'interests.php') ? 'active' : ''; ?>">
-                    <i>🎨</i> Interests & Hobbies
+                 Interests & Hobbies
                 </a>
             </li>
             <li>
                 <a href="references.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'references.php') ? 'active' : ''; ?>">
-                    <i>📞</i> References
+                References
                 </a>
             </li>
         </ul>
@@ -60,7 +60,7 @@
         <ul>
             <li>
                 <a href="preview.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'preview.php') ? 'active' : ''; ?>">
-                    <i>👁️</i> Preview & Submit
+                Preview & Submit
                 </a>
             </li>
         </ul>
