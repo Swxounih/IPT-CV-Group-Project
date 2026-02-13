@@ -2,70 +2,44 @@
 session_start();
 require_once 'config.php';
 
-// Check if personal info exists
-if (!isset($_SESSION['resume_data']['personal_info_id'])) {
-    header('Location: personal-information.php');
-    exit();
-}
-
-// Handle deleting a work experience entry
+// Handle deleting a work experience entry from SESSION
 if (isset($_GET['delete'])) {
-    $conn = getDBConnection();
-    $id = (int)$_GET['delete'];
-    
-    $sql = "DELETE FROM work_experience WHERE id = $id AND personal_info_id = " . $_SESSION['resume_data']['personal_info_id'];
-    $conn->query($sql);
-    
-    closeDBConnection($conn);
+    $index = (int)$_GET['delete'];
+    if (isset($_SESSION['resume_data']['work_experience'][$index])) {
+        array_splice($_SESSION['resume_data']['work_experience'], $index, 1);
+    }
     header('Location: work-experience.php');
     exit();
 }
 
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $conn = getDBConnection();
-    $personal_info_id = $_SESSION['resume_data']['personal_info_id'];
-    
     if (isset($_POST['add_experience'])) {
-        // Add new work experience entry
-        $job_title = $conn->real_escape_string($_POST['job_title'] ?? '');
-        $city = $conn->real_escape_string($_POST['city'] ?? '');
-        $employer = $conn->real_escape_string($_POST['employer'] ?? '');
-        $start_date = $conn->real_escape_string($_POST['start_date'] ?? '');
-        $end_date = $conn->real_escape_string($_POST['end_date'] ?? '');
-        $description = $conn->real_escape_string($_POST['description'] ?? '');
+        // Add new work experience entry to SESSION (not database yet!)
+        $experience = array(
+            'job_title' => $_POST['job_title'] ?? '',
+            'city' => $_POST['city'] ?? '',
+            'employer' => $_POST['employer'] ?? '',
+            'start_date' => $_POST['start_date'] ?? '',
+            'end_date' => $_POST['end_date'] ?? '',
+            'description' => $_POST['description'] ?? ''
+        );
         
-        $sql = "INSERT INTO work_experience (personal_info_id, job_title, employer, city, start_date, end_date, description) 
-                VALUES ('$personal_info_id', '$job_title', '$employer', '$city', '$start_date', '$end_date', '$description')";
-        
-        if ($conn->query($sql) === TRUE) {
-            closeDBConnection($conn);
-            header('Location: work-experience.php');
-            exit();
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+        if (!isset($_SESSION['resume_data']['work_experience'])) {
+            $_SESSION['resume_data']['work_experience'] = array();
         }
+        $_SESSION['resume_data']['work_experience'][] = $experience;
+        
+        header('Location: work-experience.php');
+        exit();
     } elseif (isset($_POST['next'])) {
-        closeDBConnection($conn);
         header('Location: skills.php');
         exit();
     }
-    
-    closeDBConnection($conn);
 }
 
-// Get existing work experience entries from database
-$conn = getDBConnection();
-$personal_info_id = $_SESSION['resume_data']['personal_info_id'];
-$sql = "SELECT * FROM work_experience WHERE personal_info_id = $personal_info_id ORDER BY start_date DESC";
-$result = $conn->query($sql);
-$experience_list = array();
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $experience_list[] = $row;
-    }
-}
-closeDBConnection($conn);
+// Get existing work experience entries from SESSION
+$experience_list = $_SESSION['resume_data']['work_experience'] ?? array();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -84,22 +58,27 @@ closeDBConnection($conn);
         .experience-entry h4 { margin-top: 0; color: #555; }
         .delete-btn { background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 3px; }
         .add-form { border: 2px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
+        .info-note { background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-bottom: 20px; }
     </style>
 </head>
 <body>
+    <div class="info-note">
+        ℹ️ <strong>Note:</strong> Your data will be saved to the database only after you complete all steps and click "Submit" on the final page.
+    </div>
+    
     <h3>Work Experience</h3>
     
     <!-- Display existing work experience entries -->
     <?php if (!empty($experience_list)): ?>
         <div style="margin-bottom: 30px;">
             <h4>Added Work Experience:</h4>
-            <?php foreach ($experience_list as $exp): ?>
+            <?php foreach ($experience_list as $index => $exp): ?>
                 <div class="experience-entry">
                     <h4><?php echo htmlspecialchars($exp['job_title']); ?> - <?php echo htmlspecialchars($exp['employer']); ?></h4>
                     <p><strong>Location:</strong> <?php echo htmlspecialchars($exp['city']); ?></p>
                     <p><strong>Period:</strong> <?php echo htmlspecialchars($exp['start_date']); ?> to <?php echo htmlspecialchars($exp['end_date']); ?></p>
                     <p><?php echo nl2br(htmlspecialchars($exp['description'])); ?></p>
-                    <a href="work-experience.php?delete=<?php echo $exp['id']; ?>" onclick="return confirm('Are you sure you want to delete this entry?');">
+                    <a href="work-experience.php?delete=<?php echo $index; ?>" onclick="return confirm('Are you sure you want to delete this entry?');">
                         <button type="button" class="delete-btn">Delete</button>
                     </a>
                 </div>

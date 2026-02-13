@@ -2,69 +2,45 @@
 session_start();
 require_once 'config.php';
 
-// Check if personal info exists
-if (!isset($_SESSION['resume_data']['personal_info_id'])) {
-    header('Location: personal-information.php');
-    exit();
-}
-
-// Handle deleting an education entry
+// Handle deleting an education entry from SESSION
 if (isset($_GET['delete'])) {
-    $conn = getDBConnection();
-    $id = (int)$_GET['delete'];
-    
-    $sql = "DELETE FROM education WHERE id = $id AND personal_info_id = " . $_SESSION['resume_data']['personal_info_id'];
-    $conn->query($sql);
-    
-    closeDBConnection($conn);
+    $index = (int)$_GET['delete'];
+    if (isset($_SESSION['resume_data']['education'][$index])) {
+        array_splice($_SESSION['resume_data']['education'], $index, 1);
+    }
     header('Location: education.php');
     exit();
 }
 
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $conn = getDBConnection();
-    $personal_info_id = $_SESSION['resume_data']['personal_info_id'];
-    
     if (isset($_POST['add_education'])) {
-        // Add new education entry
-        $degree = $conn->real_escape_string($_POST['degree'] ?? '');
-        $institution = $conn->real_escape_string($_POST['institution'] ?? '');
-        $start_date = $conn->real_escape_string($_POST['start_date'] ?? '');
-        $end_date = $conn->real_escape_string($_POST['end_date'] ?? '');
-        $description = $conn->real_escape_string($_POST['description'] ?? '');
+        // Add new education entry to SESSION (not database yet!)
+        $education = array(
+            'degree' => $_POST['degree'] ?? '',
+            'institution' => $_POST['institution'] ?? '',
+            'start_date' => $_POST['start_date'] ?? '',
+            'end_date' => $_POST['end_date'] ?? '',
+            'description' => $_POST['description'] ?? ''
+        );
         
-        $sql = "INSERT INTO education (personal_info_id, degree, institution, start_date, end_date, description) 
-                VALUES ('$personal_info_id', '$degree', '$institution', '$start_date', '$end_date', '$description')";
-        
-        if ($conn->query($sql) === TRUE) {
-            closeDBConnection($conn);
-            header('Location: education.php');
-            exit();
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+        if (!isset($_SESSION['resume_data']['education'])) {
+            $_SESSION['resume_data']['education'] = array();
         }
+        $_SESSION['resume_data']['education'][] = $education;
+        
+        // Redirect to same page to clear form
+        header('Location: education.php');
+        exit();
     } elseif (isset($_POST['next'])) {
-        closeDBConnection($conn);
+        // Proceed to next page
         header('Location: work-experience.php');
         exit();
     }
-    
-    closeDBConnection($conn);
 }
 
-// Get existing education entries from database
-$conn = getDBConnection();
-$personal_info_id = $_SESSION['resume_data']['personal_info_id'];
-$sql = "SELECT * FROM education WHERE personal_info_id = $personal_info_id ORDER BY start_date DESC";
-$result = $conn->query($sql);
-$education_list = array();
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $education_list[] = $row;
-    }
-}
-closeDBConnection($conn);
+// Get existing education entries from SESSION
+$education_list = $_SESSION['resume_data']['education'] ?? array();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -83,21 +59,26 @@ closeDBConnection($conn);
         .education-entry h4 { margin-top: 0; color: #555; }
         .delete-btn { background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 3px; }
         .add-form { border: 2px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
+        .info-note { background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-bottom: 20px; }
     </style>
 </head>
 <body>
+    <div class="info-note">
+        ℹ️ <strong>Note:</strong> Your data will be saved to the database only after you complete all steps and click "Submit" on the final page.
+    </div>
+    
     <h3>Education and Qualifications</h3>
     
     <!-- Display existing education entries -->
     <?php if (!empty($education_list)): ?>
         <div style="margin-bottom: 30px;">
             <h4>Added Education Entries:</h4>
-            <?php foreach ($education_list as $edu): ?>
+            <?php foreach ($education_list as $index => $edu): ?>
                 <div class="education-entry">
                     <h4><?php echo htmlspecialchars($edu['degree']); ?> - <?php echo htmlspecialchars($edu['institution']); ?></h4>
                     <p><strong>Period:</strong> <?php echo htmlspecialchars($edu['start_date']); ?> to <?php echo htmlspecialchars($edu['end_date']); ?></p>
                     <p><?php echo nl2br(htmlspecialchars($edu['description'])); ?></p>
-                    <a href="education.php?delete=<?php echo $edu['id']; ?>" onclick="return confirm('Are you sure you want to delete this entry?');">
+                    <a href="education.php?delete=<?php echo $index; ?>" onclick="return confirm('Are you sure you want to delete this entry?');">
                         <button type="button" class="delete-btn">Delete</button>
                     </a>
                 </div>

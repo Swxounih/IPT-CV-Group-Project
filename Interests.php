@@ -2,53 +2,16 @@
 session_start();
 require_once 'config.php';
 
-// Check if personal info exists
-if (!isset($_SESSION['resume_data']['personal_info_id'])) {
-    header('Location: personal-information.php');
+// Process form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Store in SESSION only (not database yet!)
+    $_SESSION['resume_data']['interests'] = $_POST['interests'] ?? '';
+    header('Location: references.php');
     exit();
 }
 
-// Process form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $conn = getDBConnection();
-    
-    $personal_info_id = $_SESSION['resume_data']['personal_info_id'];
-    $interests = $conn->real_escape_string($_POST['interests'] ?? '');
-    
-    // Check if interests already exist for this user
-    $check_sql = "SELECT id FROM interests WHERE personal_info_id = $personal_info_id";
-    $check_result = $conn->query($check_sql);
-    
-    if ($check_result->num_rows > 0) {
-        // Update existing
-        $sql = "UPDATE interests SET interests = '$interests' WHERE personal_info_id = $personal_info_id";
-    } else {
-        // Insert new
-        $sql = "INSERT INTO interests (personal_info_id, interests) VALUES ('$personal_info_id', '$interests')";
-    }
-    
-    if ($conn->query($sql) === TRUE) {
-        $_SESSION['resume_data']['interests'] = $_POST['interests'] ?? '';
-        closeDBConnection($conn);
-        header('Location: references.php');
-        exit();
-    } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
-        closeDBConnection($conn);
-    }
-}
-
-// Get existing data from database
-$conn = getDBConnection();
-$personal_info_id = $_SESSION['resume_data']['personal_info_id'];
-$sql = "SELECT interests FROM interests WHERE personal_info_id = $personal_info_id";
-$result = $conn->query($sql);
-$interests = '';
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $interests = $row['interests'];
-}
-closeDBConnection($conn);
+// Get existing data from SESSION
+$interests = $_SESSION['resume_data']['interests'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -63,9 +26,14 @@ closeDBConnection($conn);
         input[type="submit"], button { padding: 10px 20px; margin-top: 20px; cursor: pointer; }
         h3 { color: #333; }
         .btn-container { display: flex; gap: 10px; }
+        .info-note { background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-bottom: 20px; }
     </style>
 </head>
 <body>
+    <div class="info-note">
+        ℹ️ <strong>Note:</strong> Your data will be saved to the database only after you complete all steps and click "Submit" on the final page.
+    </div>
+    
     <form action="interests.php" method="post">
         <h3>Interests and Hobbies</h3>
 

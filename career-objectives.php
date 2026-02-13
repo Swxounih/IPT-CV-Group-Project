@@ -2,35 +2,15 @@
 session_start();
 require_once 'config.php';
 
-// Check if personal info exists
-if (!isset($_SESSION['resume_data']['personal_info_id'])) {
-    header('Location: personal-information.php');
+// Process form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Store in SESSION only (not database yet!)
+    $_SESSION['resume_data']['objective'] = $_POST['objective'] ?? '';
+    header('Location: education.php');
     exit();
 }
 
-// Process form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $conn = getDBConnection();
-    
-    $personal_info_id = $_SESSION['resume_data']['personal_info_id'];
-    $objective = $conn->real_escape_string($_POST['objective'] ?? '');
-    
-    // Insert into database
-    $sql = "INSERT INTO career_objectives (personal_info_id, objective) 
-            VALUES ('$personal_info_id', '$objective')";
-    
-    if ($conn->query($sql) === TRUE) {
-        $_SESSION['resume_data']['objective'] = $_POST['objective'] ?? '';
-        closeDBConnection($conn);
-        header('Location: education.php');
-        exit();
-    } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
-        closeDBConnection($conn);
-    }
-}
-
-// Get existing data
+// Get existing data from session
 $objective = $_SESSION['resume_data']['objective'] ?? '';
 ?>
 <!DOCTYPE html>
@@ -46,9 +26,14 @@ $objective = $_SESSION['resume_data']['objective'] ?? '';
         input[type="submit"], button { padding: 10px 20px; margin-top: 20px; cursor: pointer; }
         h3 { color: #333; }
         .btn-container { display: flex; gap: 10px; }
+        .info-note { background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-bottom: 20px; }
     </style>
 </head>
 <body>
+    <div class="info-note">
+        ℹ️ <strong>Note:</strong> Your data will be saved to the database only after you complete all steps and click "Submit" on the final page.
+    </div>
+    
     <form action="career-objectives.php" method="post">
         <h3>Career Objectives</h3>
 

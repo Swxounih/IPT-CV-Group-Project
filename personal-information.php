@@ -4,8 +4,6 @@ require_once 'config.php';
 
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $conn = getDBConnection();
-    
     // Handle file upload
     $photo_path = '';
     if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
@@ -18,55 +16,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         move_uploaded_file($_FILES['photo']['tmp_name'], $photo_path);
     }
     
-    // Prepare data
-    $given_name = $conn->real_escape_string($_POST['given_name'] ?? '');
-    $middle_name = $conn->real_escape_string($_POST['middle_name'] ?? '');
-    $surname = $conn->real_escape_string($_POST['surname'] ?? '');
-    $extension = $conn->real_escape_string($_POST['extension'] ?? '');
-    $gender = $conn->real_escape_string($_POST['gender'] ?? '');
-    $birthdate = $conn->real_escape_string($_POST['birthdate'] ?? '');
-    $birthplace = $conn->real_escape_string($_POST['birthplace'] ?? '');
-    $civil_status = $conn->real_escape_string($_POST['civil_status'] ?? '');
-    $email = $conn->real_escape_string($_POST['email'] ?? '');
-    $phone = $conn->real_escape_string($_POST['phone'] ?? '');
-    $address = $conn->real_escape_string($_POST['address'] ?? '');
-    $website = $conn->real_escape_string($_POST['website'] ?? '');
+    // Store in SESSION (not database yet!)
+    $_SESSION['resume_data']['personal_info'] = array(
+        'photo' => $photo_path,
+        'given_name' => $_POST['given_name'] ?? '',
+        'middle_name' => $_POST['middle_name'] ?? '',
+        'surname' => $_POST['surname'] ?? '',
+        'extension' => $_POST['extension'] ?? '',
+        'gender' => $_POST['gender'] ?? '',
+        'birthdate' => $_POST['birthdate'] ?? '',
+        'birthplace' => $_POST['birthplace'] ?? '',
+        'civil_status' => $_POST['civil_status'] ?? '',
+        'email' => $_POST['email'] ?? '',
+        'phone' => $_POST['phone'] ?? '',
+        'address' => $_POST['address'] ?? '',
+        'website' => $_POST['website'] ?? ''
+    );
     
-    // Insert into database
-    $sql = "INSERT INTO personal_information (photo, given_name, middle_name, surname, extension, gender, birthdate, birthplace, civil_status, email, phone, address, website) 
-            VALUES ('$photo_path', '$given_name', '$middle_name', '$surname', '$extension', '$gender', '$birthdate', '$birthplace', '$civil_status', '$email', '$phone', '$address', '$website')";
-    
-    if ($conn->query($sql) === TRUE) {
-        $personal_info_id = $conn->insert_id;
-        
-        // Store in session
-        $_SESSION['resume_data']['personal_info_id'] = $personal_info_id;
-        $_SESSION['resume_data']['personal_info'] = array(
-            'photo' => $photo_path,
-            'given_name' => $_POST['given_name'] ?? '',
-            'middle_name' => $_POST['middle_name'] ?? '',
-            'surname' => $_POST['surname'] ?? '',
-            'extension' => $_POST['extension'] ?? '',
-            'gender' => $_POST['gender'] ?? '',
-            'birthdate' => $_POST['birthdate'] ?? '',
-            'birthplace' => $_POST['birthplace'] ?? '',
-            'civil_status' => $_POST['civil_status'] ?? '',
-            'email' => $_POST['email'] ?? '',
-            'phone' => $_POST['phone'] ?? '',
-            'address' => $_POST['address'] ?? '',
-            'website' => $_POST['website'] ?? ''
-        );
-        
-        closeDBConnection($conn);
-        header('Location: career-objectives.php');
-        exit();
-    } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
-        closeDBConnection($conn);
-    }
+    header('Location: career-objectives.php');
+    exit();
 }
 
-// Get existing data
+// Get existing data from session
 $data = $_SESSION['resume_data']['personal_info'] ?? array();
 ?>
 <!DOCTYPE html>
@@ -82,9 +53,14 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
         input[type="submit"], button { width: auto; padding: 10px 20px; margin-top: 20px; cursor: pointer; }
         h3 { color: #333; }
         .btn-container { display: flex; gap: 10px; }
+        .info-note { background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-bottom: 20px; }
     </style>
 </head>
 <body>
+    <div class="info-note">
+        ℹ️ <strong>Note:</strong> Your data will be saved to the database only after you complete all steps and click "Submit" on the final page.
+    </div>
+    
     <form action="personal-information.php" method="post" enctype="multipart/form-data">
         <h3>Personal Information</h3>
         

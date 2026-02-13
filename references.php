@@ -2,68 +2,42 @@
 session_start();
 require_once 'config.php';
 
-// Check if personal info exists
-if (!isset($_SESSION['resume_data']['personal_info_id'])) {
-    header('Location: personal-information.php');
-    exit();
-}
-
-// Handle deleting a reference entry
+// Handle deleting a reference entry from SESSION
 if (isset($_GET['delete'])) {
-    $conn = getDBConnection();
-    $id = (int)$_GET['delete'];
-    
-    $sql = "DELETE FROM reference WHERE id = $id AND personal_info_id = " . $_SESSION['resume_data']['personal_info_id'];
-    $conn->query($sql);
-    
-    closeDBConnection($conn);
+    $index = (int)$_GET['delete'];
+    if (isset($_SESSION['resume_data']['references'][$index])) {
+        array_splice($_SESSION['resume_data']['references'], $index, 1);
+    }
     header('Location: references.php');
     exit();
 }
 
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $conn = getDBConnection();
-    $personal_info_id = $_SESSION['resume_data']['personal_info_id'];
-    
     if (isset($_POST['add_reference'])) {
-        // Add new reference entry
-        $company_name = $conn->real_escape_string($_POST['company_name'] ?? '');
-        $contact_person = $conn->real_escape_string($_POST['contact_person'] ?? '');
-        $phone_number = $conn->real_escape_string($_POST['phone_number'] ?? '');
-        $email = $conn->real_escape_string($_POST['email'] ?? '');
+        // Add new reference entry to SESSION (not database yet!)
+        $reference = array(
+            'company_name' => $_POST['company_name'] ?? '',
+            'contact_person' => $_POST['contact_person'] ?? '',
+            'phone_number' => $_POST['phone_number'] ?? '',
+            'email' => $_POST['email'] ?? ''
+        );
         
-        $sql = "INSERT INTO reference (personal_info_id, company_name, contact_person, phone_number, email) 
-                VALUES ('$personal_info_id', '$company_name', '$contact_person', '$phone_number', '$email')";
-        
-        if ($conn->query($sql) === TRUE) {
-            closeDBConnection($conn);
-            header('Location: references.php');
-            exit();
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+        if (!isset($_SESSION['resume_data']['references'])) {
+            $_SESSION['resume_data']['references'] = array();
         }
+        $_SESSION['resume_data']['references'][] = $reference;
+        
+        header('Location: references.php');
+        exit();
     } elseif (isset($_POST['submit'])) {
-        closeDBConnection($conn);
         header('Location: preview.php');
         exit();
     }
-    
-    closeDBConnection($conn);
 }
 
-// Get existing references from database
-$conn = getDBConnection();
-$personal_info_id = $_SESSION['resume_data']['personal_info_id'];
-$sql = "SELECT * FROM reference WHERE personal_info_id = $personal_info_id";
-$result = $conn->query($sql);
-$references_list = array();
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $references_list[] = $row;
-    }
-}
-closeDBConnection($conn);
+// Get existing references from SESSION
+$references_list = $_SESSION['resume_data']['references'] ?? array();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -82,21 +56,26 @@ closeDBConnection($conn);
         .reference-entry h4 { margin-top: 0; color: #555; }
         .delete-btn { background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 3px; }
         .add-form { border: 2px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
+        .info-note { background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-bottom: 20px; }
     </style>
 </head>
 <body>
+    <div class="info-note">
+        ℹ️ <strong>Note:</strong> Your data will be saved to the database only after you complete all steps and click "Submit" on the final page.
+    </div>
+    
     <h3>References</h3>
     
     <!-- Display existing references -->
     <?php if (!empty($references_list)): ?>
         <div style="margin-bottom: 30px;">
             <h4>Added References:</h4>
-            <?php foreach ($references_list as $ref): ?>
+            <?php foreach ($references_list as $index => $ref): ?>
                 <div class="reference-entry">
                     <h4><?php echo htmlspecialchars($ref['contact_person']); ?> - <?php echo htmlspecialchars($ref['company_name']); ?></h4>
                     <p><strong>Phone:</strong> <?php echo htmlspecialchars($ref['phone_number']); ?></p>
                     <p><strong>Email:</strong> <?php echo htmlspecialchars($ref['email']); ?></p>
-                    <a href="references.php?delete=<?php echo $ref['id']; ?>" onclick="return confirm('Are you sure you want to delete this reference?');">
+                    <a href="references.php?delete=<?php echo $index; ?>" onclick="return confirm('Are you sure you want to delete this reference?');">
                         <button type="button" class="delete-btn">Delete</button>
                     </a>
                 </div>
