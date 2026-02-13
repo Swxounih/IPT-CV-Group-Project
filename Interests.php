@@ -18,6 +18,7 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="sidebar.css">
     <title>Interests</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
@@ -30,6 +31,9 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
     </style>
 </head>
 <body>
+    <!-- Dito yung sidebar -->
+    <?php include 'sidebar-nav.php'; ?>
+    
     <div class="info-note">
         ℹ️ <strong>Note:</strong> Your data will be saved to the database only after you complete all steps and click "Submit" on the final page.
     </div>

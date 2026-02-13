@@ -44,6 +44,7 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="sidebar.css">
     <title>References</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 700px; margin: 50px auto; padding: 20px; }
@@ -60,6 +61,9 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
     </style>
 </head>
 <body>
+    <!-- Dito yung sidebar -->
+    <?php include 'sidebar-nav.php'; ?>
+    
     <div class="info-note">
         ℹ️ <strong>Note:</strong> Your data will be saved to the database only after you complete all steps and click "Submit" on the final page.
     </div>

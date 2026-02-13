@@ -23,12 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'end_date' => $_POST['end_date'] ?? '',
             'description' => $_POST['description'] ?? ''
         );
-        
+
         if (!isset($_SESSION['resume_data']['education'])) {
             $_SESSION['resume_data']['education'] = array();
         }
         $_SESSION['resume_data']['education'][] = $education;
-        
+
         // Redirect to same page to clear form
         header('Location: education.php');
         exit();
@@ -44,31 +44,97 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="sidebar.css">
     <title>Education and Qualifications</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 700px; margin: 50px auto; padding: 20px; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input, textarea { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
-        button, input[type="submit"] { padding: 10px 20px; margin-top: 20px; cursor: pointer; }
-        h3 { color: #333; }
-        .btn-container { display: flex; gap: 10px; margin-top: 20px; }
-        .education-entry { background: #f5f5f5; padding: 15px; margin: 15px 0; border-radius: 5px; }
-        .education-entry h4 { margin-top: 0; color: #555; }
-        .delete-btn { background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 3px; }
-        .add-form { border: 2px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
-        .info-note { background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-bottom: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        button,
+        input[type="submit"] {
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        h3 {
+            color: #333;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .education-entry {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .education-entry h4 {
+            margin-top: 0;
+            color: #555;
+        }
+
+        .delete-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+
+        .add-form {
+            border: 2px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .info-note {
+            background: #fff3cd;
+            padding: 10px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
+
 <body>
+    <!-- Dito yung sidebar -->
+    <?php include 'sidebar-nav.php'; ?>
+
     <div class="info-note">
         ℹ️ <strong>Note:</strong> Your data will be saved to the database only after you complete all steps and click "Submit" on the final page.
     </div>
-    
+
     <h3>Education and Qualifications</h3>
-    
+
     <!-- Display existing education entries -->
     <?php if (!empty($education_list)): ?>
         <div style="margin-bottom: 30px;">
@@ -85,30 +151,30 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
-    
+
     <!-- Form to add new education entry -->
     <div class="add-form">
         <h4>Add Education Entry</h4>
         <form action="education.php" method="post">
             <label for="degree">Degree/Qualification:</label>
             <input type="text" id="degree" name="degree" required>
-            
+
             <label for="institution">Institution:</label>
             <input type="text" id="institution" name="institution" required>
-            
+
             <label for="start_date">Start Date:</label>
             <input type="date" id="start_date" name="start_date" required>
-            
+
             <label for="end_date">End Date:</label>
             <input type="date" id="end_date" name="end_date" required>
-            
+
             <label for="description">Description:</label>
             <textarea id="description" name="description" rows="4" cols="50"></textarea>
 
             <button type="submit" name="add_education">Add Education Entry</button>
         </form>
     </div>
-    
+
     <!-- Navigation buttons -->
     <form action="education.php" method="post">
         <div class="btn-container">
@@ -117,4 +183,5 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
         </div>
     </form>
 </body>
+
 </html>
