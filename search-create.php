@@ -7,66 +7,130 @@ require_once 'config.php';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CV Management</title>
+  <title>CV Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+    
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #3b82f6;
+      --primary-light: #818cf8;
+      --secondary: #ec4899;
+      --success: #10b981;
+      --dark: #3b82f6;
+      --dark-light: #1e293b;
+      --gray: #64748b;
+      --gray-light: #cbd5e1;
+      --gray-lighter: #f1f5f9;
+      --white: #ffffff;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+      --radius: 12px;
+      --radius-lg: 16px;
+    }
     
     body { 
-      font-family: Arial, sans-serif; 
-      background-color: #f5f5f5;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #667eea 100%);
+      min-height: 100vh;
+      color: var(--dark);
+      line-height: 1.6;
     }
     
     /* Navigation Bar */
     .navbar {
-      background-color: #2c3e50;
-      padding: 15px 0;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      padding: 16px 0;
+      box-shadow: var(--shadow);
       position: sticky;
       top: 0;
       z-index: 100;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     }
     
     .nav-container {
       max-width: 1200px;
       margin: 0 auto;
       display: flex;
-      gap: 10px;
-      padding: 0 20px;
+      gap: 12px;
+      padding: 0 24px;
       align-items: center;
       justify-content: center;
     }
     
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(50deg, var(--primary) 100%, var(--secondary) 0%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-right: auto;
+    }
+    
     .nav-btn {
-      background-color: #34495e;
-      color: white;
+      background: transparent;
+      color: var(--gray);
       border: none;
-      padding: 10px 25px;
-      font-size: 16px;
+      padding: 10px 24px;
+      font-size: 15px;
+      font-weight: 500;
       cursor: pointer;
-      border-radius: 4px;
-      transition: background-color 0.3s ease;
-      width: 400px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      position: relative;
     }
     
     .nav-btn:hover {
-      background-color: #1abc9c;
+      color: var(--primary);
+      background: var(--gray-lighter);
     }
     
     .nav-btn.active {
-      background-color: #1abc9c;
-      font-weight: bold;
+      color: var(--primary);
+      background: rgba(99, 102, 241, 0.1);
+      font-weight: 600;
+    }
+    
+    .nav-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 2px;
     }
     
     /* Main Container */
     .container {
-      max-width: 1000px;
-      margin: 30px auto;
-      padding: 0 20px;
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 24px;
+     
     }
     
     /* Section Styling */
     .section {
       display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
     .section.active {
@@ -74,141 +138,372 @@ require_once 'config.php';
     }
     
     .section-content {
-      background-color: white;
-      border-radius: 8px;
-      padding: 30px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 48px;
+      box-shadow: var(--shadow-xl);
     }
     
-    h1 {
-      color: #2c3e50;
-      margin-bottom: 20px;
-      font-size: 28px;
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      margin-bottom: 48px;
     }
     
-    h3 { 
-      color: #333; 
-      margin-bottom: 15px;
+    .hero h1 {
+      color: var(--dark);
+      margin-bottom: 16px;
+      font-size: 42px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     
-    .btn-container { 
-      display: flex; 
-      gap: 10px;
-      margin-top: 30px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    
-    .btn-container button {
-      padding: 18px 50px;
+    .hero p {
+      color: var(--gray);
       font-size: 18px;
-      min-width: 300px;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.7;
     }
     
-    input[type="submit"], 
-    button {
-      padding: 12px 25px; 
-      cursor: pointer;
+    /* Feature Cards */
+    .info-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.1);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-top: 32px;
+    }
+    
+    .info-card h3 {
+      color: var(--dark);
+      margin-bottom: 16px;
+      font-size: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    
+    .info-card p {
+      color: var(--gray);
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    
+    .feature-item {
+      background: var(--white);
+      padding: 16px 20px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+    
+    .feature-item:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+    
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      background: transparent;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    
+    .feature-text {
+      color: var(--dark);
+      font-weight: 500;
+      font-size: 14px;
+    }
+    
+    /* CTA Button */
+    .cta-container {
+      margin-top: 48px;
+      text-align: center;
+    }
+    
+    .cta-btn {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: var(--white);
       border: none;
-      border-radius: 4px;
-      font-size: 16px;
-      background-color: #1abc9c;
-      color: white;
-      transition: background-color 0.3s ease;
+      padding: 18px 48px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
     }
     
-    input[type="submit"]:hover, 
-    button:hover {
-      background-color: #16a085;
+    
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 35px -5px rgba(99, 102, 241, 0.4);
+    }
+    
+    .cta-btn:hover::after {
+      transform: translateX(4px);
+    }
+    
+    /* Search Section */
+    .search-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .search-header h1 {
+      color: var(--dark);
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+    
+    .search-header p {
+      color: var(--gray);
+      font-size: 16px;
     }
     
     .search-box {
       display: flex;
-      gap: 10px;
-      margin-bottom: 30px;
+      gap: 12px;
+      margin-bottom: 32px;
+      background: var(--gray-lighter);
+      padding: 8px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
     }
     
     .search-box input {
       flex: 1;
-      padding: 10px;
-      border: 1px solid #bdc3c7;
-      border-radius: 4px;
+      padding: 14px 20px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      font-size: 15px;
+      background: var(--white);
+      transition: all 0.3s ease;
+      font-family: inherit;
     }
     
-    .search-box button {
-      padding: 10px 25px;
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
     }
     
+    .search-box input::placeholder {
+      color: var(--gray-light);
+    }
+    
+    .search-btn {
+      padding: 14px 32px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 15px;
+    }
+    
+    .search-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    /* Results Section */
     .results-section {
-      margin-top: 20px;
-      min-height: 200px;
-      border: 1px solid #ecf0f1;
-      border-radius: 4px;
-      padding: 20px;
-      background-color: #fafafa;
+      min-height: 300px;
+      border-radius: var(--radius);
+      padding: 24px;
+      background: var(--gray-lighter);
+    }
+    
+    .empty-state {
+      text-align: left
+      padding:  20px;
+      color: var(--gray);
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .results-header {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--gray-light);
+    }
+    
+    .results-header h4 {
+      color: var(--dark);
+      font-size: 18px;
+      font-weight: 600;
     }
     
     .result-item {
-      background-color: white;
-      border-left: 4px solid #1abc9c;
-      padding: 15px;
-      margin-bottom: 10px;
-      border-radius: 4px;
+      background: var(--white);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      border-left: 4px solid var(--primary);
+      padding: 24px;
+      margin-bottom: 12px;
+      border-radius: var(--radius);
       cursor: pointer;
       transition: all 0.3s ease;
     }
     
     .result-item:hover {
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      transform: translateX(5px);
+      box-shadow: var(--shadow-lg);
+      transform: translateX(8px);
+      border-left-color: var(--secondary);
     }
     
     .result-item h4 {
-      color: #2c3e50;
-      margin-bottom: 5px;
+      color: var(--dark);
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: 600;
     }
     
-    .result-item p {
-      color: #666;
-      margin: 5px 0;
+    .result-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      color: var(--gray);
+      font-size: 14px;
+    }
+    
+    .result-info-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .result-info-item strong {
+      color: var(--dark);
+      font-weight: 600;
+    }
+    
+    .no-results {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 40px;
+      text-align: center;
+    }
+    
+    .no-results-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    .no-results h3 {
+      color: var(--dark);
+      margin-bottom: 8px;
+      font-size: 20px;
+    }
+    
+    .no-results p {
+      color: var(--gray);
+    }
+    
+    /* Loading Animation */
+    .loading {
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--gray-lighter);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
     
     /* Responsive Design */
     @media (max-width: 768px) {
-      .nav-btn {
-        padding: 8px 20px;
-        font-size: 14px;
+      .nav-container {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .logo {
+        margin-right: 0;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      
+      .nav-btn.active::after {
+        display: none;
       }
       
       .section-content {
-        padding: 20px;
+        padding: 32px 24px;
       }
       
-      h1 {
-        font-size: 22px;
+      .hero h1 {
+        font-size: 32px;
       }
       
-      .container {
-        margin: 20px auto;
-      }
-      
-      .btn-container button {
-        padding: 15px 30px;
+      .hero p {
         font-size: 16px;
-        min-width: 150px;
+      }
+      
+      .features-grid {
+        grid-template-columns: 1fr;
       }
       
       .search-box {
         flex-direction: column;
       }
       
-      .search-box input {
+      .search-btn {
         width: 100%;
+        padding: 16px;
       }
       
-      .search-box button {
+      .result-info {
+        grid-template-columns: 1fr;
+      }
+      
+      .cta-btn {
         width: 100%;
-        padding: 12px;
+        justify-content: center;
       }
     }
   </style>
@@ -218,8 +513,9 @@ require_once 'config.php';
   <!-- Navigation Bar -->
   <nav class="navbar">
     <div class="nav-container">
-      <button class="nav-btn active" onclick="showSection('main')">Main</button>
-      <button class="nav-btn" onclick="showSection('search')">Search</button>
+      <div class="logo">CV Manager</div>
+      <button class="nav-btn active" onclick="showSection('main')">Home</button>
+      <button class="nav-btn" onclick="showSection('search')">Search CV</button>
     </div>
   </nav>
   
@@ -229,26 +525,55 @@ require_once 'config.php';
     <!-- Main Section -->
     <section id="main" class="section active">
       <div class="section-content">
-        <h1>Welcome to CV Management System</h1>
-        <p>This is your professional CV management platform. Add and manage your professional information here.</p>
-        
-        <div style="margin-top: 30px; padding: 20px; background-color: #ecf0f1; border-radius: 4px;">
-          <h3>Website Information</h3>
-          <p><strong>About:</strong> A comprehensive CV management system that allows you to create, edit, and manage your professional resume.</p>
-          <p style="margin-top: 10px;"><strong>Features:</strong></p>
-          <ul style="margin-left: 20px; margin-top: 10px;">
-            <li>Personal Information Management</li>
-            <li>Education & Qualifications</li>
-            <li>Work Experience Tracking</li>
-            <li>Skills & Competencies</li>
-            <li>References</li>
-            <li>Career Objectives</li>
-            <li>Search & Filter Functionality</li>
-          </ul>
+        <div class="hero">
+          <h1>Welcome to CV Management System</h1>
+          <p>Your professional CV management platform. Create, manage, and showcase your professional information with ease.</p>
         </div>
         
-        <div class="btn-container">
-            <button type="button" onclick="window.location.href='personal-information.php'">Create your own CV</button>
+        <div class="info-card">
+          <h3>About the Platform</h3>
+          <p>A comprehensive CV management system that empowers you to create, edit, and manage your professional resume with powerful features designed for modern job seekers.</p>
+          
+          <div class="features-grid">
+            <div class="feature-item">
+              <div class="feature-icon">✅</div>
+              <div class="feature-text">Personal Information</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">✅</div>
+              <div class="feature-text">Education & Qualifications</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">✅</div>
+              <div class="feature-text">Work Experience</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">✅</div>
+              <div class="feature-text">Skills & Competencies</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">✅</div>
+              <div class="feature-text">References</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">✅</div>
+              <div class="feature-text">Career Objectives</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">✅</div>
+              <div class="feature-text">Advanced Search</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">✅</div>
+              <div class="feature-text">Profile Analytics</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="cta-container">
+          <button type="button" class="cta-btn" onclick="window.location.href='personal-information.php'">
+            Create Your CV
+          </button>
         </div>
       </div>
     </section>
@@ -256,15 +581,20 @@ require_once 'config.php';
     <!-- Search Section -->
     <section id="search" class="section">
       <div class="section-content">
-        <h1>Search Personal CV</h1>
+        <div class="search-header">
+          <h1>Search CV Database</h1>
+          <p>Find professional profiles by name, email, or skills</p>
+        </div>
         
         <div class="search-box">
-          <input type="text" id="searchInput" placeholder="Enter search term (name, email, or skills)">
-          <button onclick="performSearch()">Search</button>
+          <input type="text" id="searchInput" placeholder="Enter name, email, or skills to search...">
+          <button class="search-btn" onclick="performSearch()">Search</button>
         </div>
         
         <div class="results-section" id="resultsView">
-          <p style="color: #7f8c8d; text-align: center;">Enter a search term and click Search to view results</p>
+          <div class="empty-state">
+            <p>Enter a search term above to find professional profiles</p>
+          </div>
         </div>
       </div>
     </section>
@@ -273,22 +603,13 @@ require_once 'config.php';
   
   <script>
     function showSection(sectionId) {
-      // Hide all sections
       const sections = document.querySelectorAll('.section');
-      sections.forEach(section => {
-        section.classList.remove('active');
-      });
+      sections.forEach(section => section.classList.remove('active'));
       
-      // Remove active class from all nav buttons
       const navBtns = document.querySelectorAll('.nav-btn');
-      navBtns.forEach(btn => {
-        btn.classList.remove('active');
-      });
+      navBtns.forEach(btn => btn.classList.remove('active'));
       
-      // Show selected section
       document.getElementById(sectionId).classList.add('active');
-      
-      // Add active class to clicked button
       event.target.classList.add('active');
     }
     
@@ -297,44 +618,68 @@ require_once 'config.php';
       const resultsView = document.getElementById('resultsView');
       
       if (searchTerm.trim() === '') {
-        resultsView.innerHTML = '<p style="color: #7f8c8d; text-align: center;">Please enter a search term</p>';
+        resultsView.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">⚠️</div>
+            <p>Please enter a search term</p>
+          </div>
+        `;
         return;
       }
       
       // Show loading
-      resultsView.innerHTML = '<p style="color: #7f8c8d; text-align: center;">Searching...</p>';
+      resultsView.innerHTML = `
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p style="color: var(--gray);">Searching database...</p>
+        </div>
+      `;
       
       // AJAX call to search
       fetch('search_ajax.php?term=' + encodeURIComponent(searchTerm))
         .then(response => response.json())
         .then(data => {
           if (data.success && data.results.length > 0) {
-            let html = '<h4>Search Results for: "' + searchTerm + '"</h4>';
+            let html = `
+              <div class="results-header">
+                <h4>${data.results.length} result(s) found for "${searchTerm}"</h4>
+              </div>
+            `;
             data.results.forEach(result => {
               html += `
                 <div class="result-item" onclick="viewResume(${result.id})">
                   <h4>${result.name}</h4>
-                  <p><strong>Email:</strong> ${result.email}</p>
-                  <p><strong>Phone:</strong> ${result.phone}</p>
-                  <p><strong>Address:</strong> ${result.address}</p>
+                  <div class="result-info">
+                    <div class="result-info-item">
+                      <strong>📧</strong> ${result.email}
+                    </div>
+                    <div class="result-info-item">
+                      <strong>📱</strong> ${result.phone}
+                    </div>
+                    <div class="result-info-item">
+                      <strong>📍</strong> ${result.address}
+                    </div>
+                  </div>
                 </div>
               `;
             });
             resultsView.innerHTML = html;
           } else {
             resultsView.innerHTML = `
-              <div class="result-item">
-                <strong>Search Results for: "${searchTerm}"</strong>
-                <p style="margin-top: 10px;">No results found. Please refine your search.</p>
+              <div class="no-results">
+                <div class="no-results-icon">😕</div>
+                <h3>No results found</h3>
+                <p>No profiles match "${searchTerm}". Try different keywords or check your spelling.</p>
               </div>
             `;
           }
         })
         .catch(error => {
           resultsView.innerHTML = `
-            <div class="result-item">
-              <strong>Error</strong>
-              <p style="margin-top: 10px;">An error occurred while searching. Please try again.</p>
+            <div class="no-results">
+              <div class="no-results-icon">❌</div>
+              <h3>Search Error</h3>
+              <p>An error occurred while searching. Please try again later.</p>
             </div>
           `;
         });

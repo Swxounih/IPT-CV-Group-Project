@@ -29,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'civil_status' => $_POST['civil_status'] ?? '',
         'email' => $_POST['email'] ?? '',
         'phone' => $_POST['phone'] ?? '',
-        'address' => $_POST['address'] ?? '',
         'nationality' => $_POST['nationality'] ?? '',
         'driving_license' => $_POST['driving_license'] ?? ''
     );
@@ -50,8 +49,6 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
     <link rel="stylesheet" href="sidebar.css">
     <style>
         /* Page specific styles */
-
-        
         * {
             margin: 0;
             padding: 0;
@@ -60,52 +57,37 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
         
         body { 
             font-family: Arial, sans-serif; 
-            background: linear-gradient(to bottom, #1e5bb8 50px, #ffffff 50px, #ffffff 100%);
+            background: #ffffff;
             min-height: 100vh;
-            padding: 0;
-        }
-        .form-title {
-           font-size: 15px;
-           font-weight: 600;
-           color: #2d3748;
-           margin-bottom: 30px;
-           text-align: left;
-           letter-spacing: 0.5px;
-        }
-        
-        .header {
-            background: #1e5bb8;
-            color: white;
-            padding: 15px 30px;
-            font-size: 20px;
-            font-weight: bold;
-            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
         
         .main-content {
-          position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    margin-left: 0;
-    padding: 0;
-    max-width: 750px;
-    width: 100%;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            margin-left: 0;
+            padding: 0;
+            max-width: 750px;
+            width: 100%;
         }
         
         .form-container {
-            min-height: 300px;
-            max-width: 850px;
             width: 100%;
             background: #ffffff;
-            padding: 50px;
+            padding: 30px 50px;
             border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            box-shadow:0 10px 40px rgba(0,0,0,0.15);
+            min-height: 650px;
         }
         
         .photo-section {
             display: flex;
-            gap: 30px;
+            gap: 35px;
             margin-bottom: 30px;
         }
         
@@ -114,10 +96,10 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
         }
         
         .photo-preview {
-            width: 150px;
-            height: 150px;
-            background: white;
-            border: 2px solid #999;
+            width: 140px;
+            height: 140px;
+            background: #f9fafb;
+            border: 2px solid #d1d5db;
             border-radius: 8px;
             display: flex;
             flex-direction: column;
@@ -126,6 +108,11 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .photo-preview:hover {
+            border-color: #9ca3af;
         }
         
         .photo-preview img {
@@ -145,25 +132,28 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
         
         .photo-placeholder {
             text-align: center;
-            color: #999;
+            color: #9ca3af;
         }
         
         .camera-icon {
-            width: 60px;
-            height: 60px;
-            background: #e0e0e0;
+            width: 50px;
+            height: 50px;
+            background: #e5e7eb;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 10px;
-            font-size: 30px;
-            color: #999;
+            margin: 0 auto 8px;
+            font-size: 24px;
+            color: #6b7280;
         }
         
         .photo-text {
-            font-size: 13px;
-            color: #999;
+            font-size: 11px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
         }
         
         #photo {
@@ -177,16 +167,16 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
         .form-row {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 18px;
+            margin-bottom: 18px;
         }
         
         .form-row.two-cols {
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 1fr 1fr;
         }
         
-        .form-row.three-cols {
-            grid-template-columns: repeat(3, 1fr);
+        .form-row.name-cols {
+            grid-template-columns: 2fr 1fr;
         }
         
         .form-group {
@@ -196,76 +186,105 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
         
         label {
             font-size: 11px;
-            color: #4a5568;
+            color: #6b7280;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 5px;
+            margin-bottom: 7px;
             font-weight: 600;
         }
         
         input, select {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #a0aec0;
-            border-radius: 4px;
+            padding: 11px 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
             font-size: 14px;
             background: white;
-            color: #2d3748;
+            color: #1f2937;
+            transition: all 0.2s ease;
         }
         
         input:focus, select:focus {
             outline: none;
-            border-color: #1e5bb8;
-            box-shadow: 0 0 0 2px rgba(30, 91, 184, 0.1);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
         
         select {
             cursor: pointer;
             appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5568' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 10px center;
-            padding-right: 30px;
+            background-position: right 12px center;
+            padding-right: 35px;
         }
         
         .btn-container {
             display: flex;
             justify-content: center;
-            margin-top: 42px;
+            margin-top: 30px;
         }
+        .page-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+}
         
         .next-btn {
             background: #3b82f6;
             color: white;
             border: none;
-            padding: 12px 40px;
-            border-radius: 6px;
-            font-size: 15px;
+            padding: 13px 48px;
+            border-radius: 7px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             transition: all 0.3s ease;
         }
         
         .next-btn:hover {
-            background: #164a9a;
+            background: #2563eb;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(30, 91, 184, 0.3);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                transform: translate(-50%, -50%);
+                max-width: 90%;
+            }
         }
         
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .main-content {
+                transform: translate(-50%, -50%);
+                max-width: 100%;
+            }
+            
+            .form-container {
+                padding: 30px 25px;
+            }
+            
             .photo-section {
                 flex-direction: column;
+                align-items: center;
             }
             
             .form-row.two-cols,
-            .form-row.three-cols {
+            .form-row.name-cols {
                 grid-template-columns: 1fr;
             }
         }
     </style>
-</head>s
+</head>
 <body>
     
     <!-- Sidebar -->
@@ -273,7 +292,7 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
     
     <div class="main-content">
         <div class="form-container">
-            <h1 class="form-title">Personal Information</h1>
+            <h2 class="page-title">Personal Information</h2>
             <form action="personal-information.php" method="post" enctype="multipart/form-data">
                 <div class="photo-section">
                     <div class="photo-upload">
@@ -294,7 +313,7 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
                             </div>
                         </div>
                         
-                        <div class="form-row two-cols">
+                        <div class="form-row name-cols">
                             <div class="form-group">
                                 <label for="given_name">First Name</label>
                                 <input type="text" id="given_name" name="given_name" value="<?php echo htmlspecialchars($data['given_name'] ?? ''); ?>" required>
@@ -335,7 +354,7 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
                         <input type="text" name="birthplace" id="birthplace" value="<?php echo htmlspecialchars($data['birthplace'] ?? ''); ?>" required>
                     </div>
                     <div class="form-group">
-                        <label for="civil_status">Martial Status</label>
+                        <label for="civil_status">Marital Status</label>
                         <select id="civil_status" name="civil_status" required>
                             <option value="">SELECT</option>
                             <option value="single" <?php echo ($data['civil_status'] ?? '') === 'single' ? 'selected' : ''; ?>>Single</option>
