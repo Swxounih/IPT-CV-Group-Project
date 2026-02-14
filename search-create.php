@@ -454,6 +454,20 @@ require_once 'config.php';
       to { transform: rotate(360deg); }
     }
     
+    .info-notice {
+      background: #e8f4fd;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+    
+    .info-notice p {
+      color: #1e40af;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
     /* Responsive Design */
     @media (max-width: 768px) {
       .nav-container {
@@ -525,9 +539,23 @@ require_once 'config.php';
     <!-- Main Section -->
     <section id="main" class="section active">
       <div class="section-content">
-        <div class="hero">
-          <h1>Welcome to CV Management System</h1>
-          <p>Your professional CV management platform. Create, manage, and showcase your professional information with ease.</p>
+        <h1>Welcome to CV Management System</h1>
+        <p>This is your professional CV management platform. Add and manage your professional information here.</p>
+        
+        <div style="margin-top: 30px; padding: 20px; background-color: #ecf0f1; border-radius: 4px;">
+          <h3>Website Information</h3>
+          <p><strong>About:</strong> A comprehensive CV management system that allows you to create, edit, and manage your professional resume.</p>
+          <p style="margin-top: 10px;"><strong>Features:</strong></p>
+          <ul style="margin-left: 20px; margin-top: 10px;">
+            <li>Personal Information Management</li>
+            <li>Education & Qualifications</li>
+            <li>Work Experience Tracking</li>
+            <li>Skills & Competencies</li>
+            <li>References</li>
+            <li>Career Objectives</li>
+            <li>Search & Filter Functionality</li>
+            <li>Secure Dashboard Access</li>
+          </ul>
         </div>
         
         <div class="info-card">
@@ -591,6 +619,10 @@ require_once 'config.php';
           <button class="search-btn" onclick="performSearch()">Search</button>
         </div>
         
+        <div class="info-notice">
+          <p><strong>🔒 Privacy Notice:</strong> When you click on a search result, you'll need to verify your identity with your birthdate before accessing your dashboard.</p>
+        </div>
+        
         <div class="results-section" id="resultsView">
           <div class="empty-state">
             <p>Enter a search term above to find professional profiles</p>
@@ -640,26 +672,18 @@ require_once 'config.php';
         .then(response => response.json())
         .then(data => {
           if (data.success && data.results.length > 0) {
-            let html = `
-              <div class="results-header">
-                <h4>${data.results.length} result(s) found for "${searchTerm}"</h4>
-              </div>
-            `;
+            let html = '<h4>Search Results for: "' + searchTerm + '"</h4>';
+            html += '<p style="margin-bottom: 15px; color: #666; font-size: 14px;">Click on a result to access your dashboard (verification required)</p>';
             data.results.forEach(result => {
               html += `
                 <div class="result-item" onclick="viewResume(${result.id})">
                   <h4>${result.name}</h4>
-                  <div class="result-info">
-                    <div class="result-info-item">
-                      <strong>📧</strong> ${result.email}
-                    </div>
-                    <div class="result-info-item">
-                      <strong>📱</strong> ${result.phone}
-                    </div>
-                    <div class="result-info-item">
-                      <strong>📍</strong> ${result.address}
-                    </div>
-                  </div>
+                  <p><strong>Email:</strong> ${result.email}</p>
+                  <p><strong>Phone:</strong> ${result.phone}</p>
+                  <p><strong>Address:</strong> ${result.address}</p>
+                  <p style="margin-top: 10px; font-size: 12px; color: #1abc9c;">
+                    <strong>👉 Click here to verify and access your dashboard</strong>
+                  </p>
                 </div>
               `;
             });
@@ -686,7 +710,8 @@ require_once 'config.php';
     }
     
     function viewResume(id) {
-      window.location.href = 'view_resume.php?id=' + id;
+      // Redirect to birthdate verification first, then to dashboard
+      window.location.href = 'verify-birthdate.php?id=' + id;
     }
     
     // Allow Enter key to search
