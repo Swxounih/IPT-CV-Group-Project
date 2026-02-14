@@ -2,8 +2,20 @@
 session_start();
 require_once 'config.php';
 
-// Get resume ID from URL
-$resume_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+// Support clean URL: if an `id` is provided, save it to session and redirect
+if (isset($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    if ($id > 0) {
+        $_SESSION['view_resume_id'] = $id;
+        header('Location: view_resume.php'); // redirect to hide the id from the URL
+        exit();
+    } else {
+        header('Location: search-create.php');
+        exit();
+    }
+}
+
+$resume_id = isset($_SESSION['view_resume_id']) ? (int)$_SESSION['view_resume_id'] : 0;
 
 if ($resume_id <= 0) {
     header('Location: search-create.php');
@@ -114,20 +126,31 @@ closeDBConnection($conn);
     <title>View Resume - <?php echo htmlspecialchars($personal['given_name'] . ' ' . $personal['surname']); ?></title>
     <link rel="stylesheet" href="sidebar.css">
     <style>
+        html, body {
+            height: 100%;
+        }
+
         body { 
             font-family: 'Georgia', serif; 
             background: #f5f5f5;
             margin: 0;
             padding: 0;
+            overflow: hidden; /* prevent double scroll, main-content handles scrolling */
         }
         
         .main-content {
-            margin-left: 250px;
             padding: 30px;
+            height: 100vh;      /* full viewport height */
+            box-sizing: border-box;
+            overflow: auto;     /* make main area scrollable */
+            display: flex;
+            justify-content: center; /* center resume container */
+            align-items: flex-start;
         }
         
         .resume-container {
-            max-width: 900px;
+            width: 100%;
+            max-width: 900px; /* keep the previous viewing width */
             margin: 0 auto;
             background: white;
             padding: 50px;
@@ -210,7 +233,7 @@ closeDBConnection($conn);
         .btn-container {
             display: flex;
             gap: 10px;
-            margin-top: 30px;
+            margin-top: 20px;
             justify-content: center;
         }
         
@@ -242,11 +265,15 @@ closeDBConnection($conn);
         }
         
         @media print {
-            body { background: white; }
-            .resume-container { box-shadow: none; padding: 0; }
-            .btn-container { display: none; }
-            .sidebar { display: none; }
-            .main-content { margin-left: 0; }
+            /* Ensure full content prints and no scrollbars are rendered */
+            html, body { height: auto !important; }
+            body { background: white; overflow: visible !important; }
+            .main-content { height: auto !important; overflow: visible !important; margin-left: 0; padding: 0 10px !important; }
+            .resume-container { box-shadow: none; padding: 0 20px 20px 20px; width: 100%; max-width: 900px; margin: 0 auto; }
+            .btn-container { display: none !important; }
+            .sidebar { display: none !important; }
+            /* Remove any scrollbar decorations for WebKit during print (defensive) */
+            ::-webkit-scrollbar { display: none; }
         }
         
         @media (max-width: 768px) {
@@ -266,8 +293,6 @@ closeDBConnection($conn);
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <?php include 'sidebar-nav.php'; ?>
 
     <div class="main-content">
         <div class="resume-container">
@@ -380,12 +405,12 @@ closeDBConnection($conn);
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
-        </div>
 
-        <!-- Action Buttons -->
-        <div class="btn-container">
-            <button class="btn-back" onclick="window.location.href='dashboard.php'">Back to Search</button>
-            <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
+            <!-- Action Buttons -->
+            <div class="btn-container">
+                <button class="btn-back" onclick="(function(){ sessionStorage.removeItem('view_resume_id'); window.location.href='dashboard.php'; })()">Back to Search</button>
+                <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
+            </div>
         </div>
     </div>
 </body>
