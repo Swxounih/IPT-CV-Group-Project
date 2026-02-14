@@ -541,22 +541,7 @@ require_once 'config.php';
       <div class="section-content">
         <h1>Welcome to CV Management System</h1>
         <p>This is your professional CV management platform. Add and manage your professional information here.</p>
-        
-        <div style="margin-top: 30px; padding: 20px; background-color: #ecf0f1; border-radius: 4px;">
-          <h3>Website Information</h3>
-          <p><strong>About:</strong> A comprehensive CV management system that allows you to create, edit, and manage your professional resume.</p>
-          <p style="margin-top: 10px;"><strong>Features:</strong></p>
-          <ul style="margin-left: 20px; margin-top: 10px;">
-            <li>Personal Information Management</li>
-            <li>Education & Qualifications</li>
-            <li>Work Experience Tracking</li>
-            <li>Skills & Competencies</li>
-            <li>References</li>
-            <li>Career Objectives</li>
-            <li>Search & Filter Functionality</li>
-            <li>Secure Dashboard Access</li>
-          </ul>
-        </div>
+      
         
         <div class="info-card">
           <h3>About the Platform</h3>
@@ -620,7 +605,6 @@ require_once 'config.php';
         </div>
         
         <div class="info-notice">
-          <p><strong>🔒 Privacy Notice:</strong> When you click on a search result, you'll need to verify your identity with your birthdate before accessing your dashboard.</p>
         </div>
         
         <div class="results-section" id="resultsView">
