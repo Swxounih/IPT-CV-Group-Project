@@ -12,7 +12,7 @@ if ($resume_id <= 0) {
 
 // Get the birthdate for this resume
 $conn = getDBConnection();
-$sql = "SELECT given_name, surname, birthdate FROM personal_information WHERE id = ?";
+$sql = "SELECT given_name, surname, birthdate, user_id FROM personal_information WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $resume_id);
 $stmt->execute();
@@ -35,8 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $entered_birthdate = $_POST['birthdate'] ?? '';
     
     if ($entered_birthdate === $user_data['birthdate']) {
-        // Verification successful
-        $_SESSION['verified_user_id'] = $resume_id;
+        // Verification successful - use user_id (email) from database, not resume_id
+        $_SESSION['verified_user_id'] = $user_data['user_id'];
         $_SESSION['user_name'] = $user_data['given_name'] . ' ' . $user_data['surname'];
         header('Location: dashboard.php');
         exit();
