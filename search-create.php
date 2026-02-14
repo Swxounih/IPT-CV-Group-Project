@@ -173,6 +173,20 @@ require_once 'config.php';
       margin: 5px 0;
     }
     
+    .info-notice {
+      background: #e8f4fd;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+    
+    .info-notice p {
+      color: #1e40af;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
     /* Responsive Design */
     @media (max-width: 768px) {
       .nav-btn {
@@ -244,6 +258,7 @@ require_once 'config.php';
             <li>References</li>
             <li>Career Objectives</li>
             <li>Search & Filter Functionality</li>
+            <li>Secure Dashboard Access</li>
           </ul>
         </div>
         
@@ -261,6 +276,10 @@ require_once 'config.php';
         <div class="search-box">
           <input type="text" id="searchInput" placeholder="Enter search term (name, email, or skills)">
           <button onclick="performSearch()">Search</button>
+        </div>
+        
+        <div class="info-notice">
+          <p><strong>🔒 Privacy Notice:</strong> When you click on a search result, you'll need to verify your identity with your birthdate before accessing your dashboard.</p>
         </div>
         
         <div class="results-section" id="resultsView">
@@ -310,6 +329,7 @@ require_once 'config.php';
         .then(data => {
           if (data.success && data.results.length > 0) {
             let html = '<h4>Search Results for: "' + searchTerm + '"</h4>';
+            html += '<p style="margin-bottom: 15px; color: #666; font-size: 14px;">Click on a result to access your dashboard (verification required)</p>';
             data.results.forEach(result => {
               html += `
                 <div class="result-item" onclick="viewResume(${result.id})">
@@ -317,6 +337,9 @@ require_once 'config.php';
                   <p><strong>Email:</strong> ${result.email}</p>
                   <p><strong>Phone:</strong> ${result.phone}</p>
                   <p><strong>Address:</strong> ${result.address}</p>
+                  <p style="margin-top: 10px; font-size: 12px; color: #1abc9c;">
+                    <strong>👉 Click here to verify and access your dashboard</strong>
+                  </p>
                 </div>
               `;
             });
@@ -341,7 +364,8 @@ require_once 'config.php';
     }
     
     function viewResume(id) {
-      window.location.href = 'view_resume.php?id=' + id;
+      // Redirect to birthdate verification first, then to dashboard
+      window.location.href = 'verify-birthdate.php?id=' + id;
     }
     
     // Allow Enter key to search

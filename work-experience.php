@@ -68,13 +68,13 @@ $experience_list = $_SESSION['resume_data']['work_experience'] ?? array();
         
         .main-content {
             position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    margin-left: 0;
-    padding: 0;
-    max-width: 750px;
-    width: 100%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            margin-left: 0;
+            padding: 0;
+            max-width: 750px;
+            width: 100%;
         }
         
         .form-container {

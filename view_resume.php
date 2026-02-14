@@ -384,7 +384,7 @@ closeDBConnection($conn);
 
         <!-- Action Buttons -->
         <div class="btn-container">
-            <button class="btn-back" onclick="window.location.href='search-create.php'">Back to Search</button>
+            <button class="btn-back" onclick="window.location.href='dashboard.php'">Back to Search</button>
             <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
         </div>
     </div>
