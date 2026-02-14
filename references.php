@@ -56,7 +56,7 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
         
         body { 
             font-family: Arial, sans-serif; 
-            background: #ffffff;
+            background: linear-gradient(135deg, #1ebbeb 0%, #3450ce 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;

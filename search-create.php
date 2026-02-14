@@ -19,12 +19,12 @@ require_once 'config.php';
     }
     
     :root {
-      --primary: #3b82f6;
-      --primary-dark: #3b82f6;
+      --primary: #0755d1;
+      --primary-dark: #0755d1;
       --primary-light: #818cf8;
       --secondary: #ec4899;
       --success: #10b981;
-      --dark: #3b82f6;
+      --dark: #0755d1;
       --dark-light: #1e293b;
       --gray: #64748b;
       --gray-light: #cbd5e1;
@@ -40,7 +40,7 @@ require_once 'config.php';
     
     body { 
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #667eea 100%);
+      background: linear-gradient(135deg, #1ebbeb 0%, #3450ce 100%);
       min-height: 100vh;
       color: var(--dark);
       line-height: 1.6;
@@ -635,7 +635,6 @@ require_once 'config.php';
       if (searchTerm.trim() === '') {
         resultsView.innerHTML = `
           <div class="empty-state">
-            <div class="empty-state-icon">⚠️</div>
             <p>Please enter a search term</p>
           </div>
         `;
@@ -674,7 +673,6 @@ require_once 'config.php';
           } else {
             resultsView.innerHTML = `
               <div class="no-results">
-                <div class="no-results-icon">😕</div>
                 <h3>No results found</h3>
                 <p>No profiles match "${searchTerm}". Try different keywords or check your spelling.</p>
               </div>
