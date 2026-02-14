@@ -86,6 +86,8 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
     <link rel="stylesheet" href="sidebar.css">
     <style>
         /* Page specific styles */
+
+        
         * {
             margin: 0;
             padding: 0;
@@ -97,6 +99,14 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
             background: linear-gradient(to bottom, #1e5bb8 50px, #ffffff 50px, #ffffff 100%);
             min-height: 100vh;
             padding: 0;
+        }
+        .form-title {
+           font-size: 15px;
+           font-weight: 600;
+           color: #2d3748;
+           margin-bottom: 30px;
+           text-align: left;
+           letter-spacing: 0.5px;
         }
         
         .header {
@@ -120,6 +130,7 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
         }
         
         .form-container {
+            min-height: 300px;
             max-width: 850px;
             width: 100%;
             background: #ffffff;
@@ -263,12 +274,12 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
         
         .btn-container {
             display: flex;
-            justify-content: flex-end;
-            margin-top: 30px;
+            justify-content: center;
+            margin-top: 42px;
         }
         
         .next-btn {
-            background: #1e5bb8;
+            background: #3b82f6;
             color: white;
             border: none;
             padding: 12px 40px;
@@ -310,13 +321,13 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
     
     <div class="main-content">
         <div class="form-container">
+            <h1 class="form-title">Personal Information</h1>
             <form action="personal-information.php" method="post" enctype="multipart/form-data">
                 <div class="photo-section">
                     <div class="photo-upload">
                         <label for="photo" class="photo-preview" id="photoPreview">
                             <img id="previewImage" src="<?php echo htmlspecialchars($data['photo'] ?? ''); ?>" alt="Preview">
                             <div class="photo-placeholder">
-                                <div class="camera-icon">📷</div>
                                 <div class="photo-text">Add photo</div>
                             </div>
                         </label>

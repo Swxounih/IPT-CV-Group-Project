@@ -30,7 +30,7 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
         
         body { 
             font-family: Arial, sans-serif; 
-            background: #e5e7eb;
+            background: #ffffff;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -54,9 +54,12 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
             background: #ffffff;
             padding: 50px 60px;
             border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             max-height: calc(100vh - 80px);
+            min-height: 740px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         
         .section-title {
@@ -66,16 +69,24 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
             margin-bottom: 20px;
         }
         
+        .form-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
         .form-row {
             display: grid;
             grid-template-columns: 1fr;
             gap: 18px;
             margin-bottom: 18px;
+            flex: 1;
         }
         
         .form-group {
             display: flex;
             flex-direction: column;
+            flex: 1;
         }
         
         label {
@@ -89,6 +100,7 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
         
         textarea {
             width: 100%;
+            flex: 1;
             padding: 11px 13px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
@@ -97,8 +109,8 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
             color: #1f2937;
             transition: all 0.2s ease;
             font-family: Arial, sans-serif;
-            resize: vertical;
-            min-height: 150px;
+            resize: none;
+            min-height: 300px;
             line-height: 1.6;
         }
         
@@ -108,31 +120,20 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
         
-        .info-note {
-            background: #eff6ff;
-            border-left: 4px solid #3b82f6;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 25px;
-            color: #1e40af;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-        
         .btn-container {
             display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 30px;
-            padding-top: 30px;
-
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: auto;
+            padding-top: 60px;
         }
         
         .back-btn {
-            background: #6b7280;
-            color: white;
+            background: #e5e7eb;
+            color: #374151;
             border: none;
-            padding: 13px 35px;
+            padding: 13px 48px;
             border-radius: 7px;
             font-size: 13px;
             font-weight: 600;
@@ -140,12 +141,13 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
             text-transform: uppercase;
             letter-spacing: 1px;
             transition: all 0.3s ease;
+            min-width: 160px;
         }
         
         .back-btn:hover {
-            background: #4b5563;
+            background: #d1d5db;
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(107, 114, 128, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .next-btn {
@@ -160,6 +162,7 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
             text-transform: uppercase;
             letter-spacing: 1px;
             transition: all 0.3s ease;
+            min-width: 160px;
         }
         
         .next-btn:hover {
@@ -224,10 +227,16 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
             
             .form-container {
                 padding: 30px 25px;
+                min-height: 350px;
+            }
+            
+            textarea {
+                min-height: 200px;
             }
             
             .btn-container {
-                flex-direction: column;
+                flex-direction: column-reverse;
+                padding-top: 30px;
             }
             
             .back-btn,
@@ -243,13 +252,10 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
     
     <div class="main-content">
         <div class="form-container">
-            <div class="section-title">Interests and Hobbies</div>
-            
-            
-            <form action="interests.php" method="post">
+            <form action="interests.php" method="post" class="form-content">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="interests">Your Interests and Hobbies</label>
+                        <label for="interests">Interests and Hobbies</label>
                         <textarea id="interests" name="interests" placeholder="e.g., Photography, Hiking, Reading, Playing Guitar, Volunteering..."><?php echo htmlspecialchars($interests); ?></textarea>
                     </div>
                 </div>

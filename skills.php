@@ -54,7 +54,7 @@ $skills_list = $_SESSION['resume_data']['skills'] ?? array();
         
         body { 
             font-family: Arial, sans-serif; 
-            background: #e5e7eb;
+            background: #ffffff;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -75,6 +75,7 @@ $skills_list = $_SESSION['resume_data']['skills'] ?? array();
         
         .form-container {
             width: 100%;
+            min-height: 740px;
             background: #ffffff;
             padding: 50px 60px;
             border-radius: 15px;
@@ -197,9 +198,31 @@ $skills_list = $_SESSION['resume_data']['skills'] ?? array();
         
         .btn-container {
             display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 30px;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 35px;
+        }
+        
+        .back-btn {
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            padding: 13px 48px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+        
+        .back-btn:hover {
+            background: #d1d5db;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .add-btn {
@@ -234,6 +257,7 @@ $skills_list = $_SESSION['resume_data']['skills'] ?? array();
             text-transform: uppercase;
             letter-spacing: 1px;
             transition: all 0.3s ease;
+            min-width: 160px;
         }
         
         .next-btn:hover {
@@ -287,9 +311,10 @@ $skills_list = $_SESSION['resume_data']['skills'] ?? array();
             }
             
             .btn-container {
-                flex-direction: column;
+                flex-direction: column-reverse;
             }
             
+            .back-btn,
             .add-btn,
             .next-btn {
                 width: 100%;
@@ -365,7 +390,8 @@ $skills_list = $_SESSION['resume_data']['skills'] ?? array();
             
             <!-- Navigation buttons -->
             <form action="skills.php" method="post">
-                <div class="btn-container" padding-top: 30px; margin-top: 30px;">
+                <div class="btn-container" padding-top: 30px; margin-top: 30px;>
+                    <button type="button" class="back-btn" onclick="window.location.href='work-experience.php'">Back</button>
                     <button type="submit" name="next" class="next-btn">Next Step</button>
                 </div>
             </form>

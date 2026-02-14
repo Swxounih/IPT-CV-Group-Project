@@ -40,13 +40,13 @@ $objective = $_SESSION['resume_data']['objective'] ?? '';
         
         .main-content {
             position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    margin-left: 0;
-    padding: 0;
-    max-width: 750px;
-    width: 100%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            margin-left: 0;
+            padding: 0;
+            max-width: 750px;
+            width: 100%;
         }
         
         .form-container {
@@ -55,7 +55,7 @@ $objective = $_SESSION['resume_data']['objective'] ?? '';
             padding: 50px 60px;
             border-radius: 15px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            min-height: 400px;
+            min-height: 740px;
             display: flex;
             flex-direction: column;
         }
@@ -106,9 +106,33 @@ $objective = $_SESSION['resume_data']['objective'] ?? '';
         
         .btn-container {
             display: flex;
-            justify-content: flex-end;
+            justify-content: center;
+            align-items: center;
             margin-top: auto;
-            padding-top: 30px;
+            padding-top: 60px;
+            padding-left: 15px;
+            gap: 15px;
+        }
+        
+        .back-btn {
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            padding: 13px 48px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+        
+        .back-btn:hover {
+            background: #d1d5db;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .next-btn {
@@ -123,6 +147,7 @@ $objective = $_SESSION['resume_data']['objective'] ?? '';
             text-transform: uppercase;
             letter-spacing: 1px;
             transition: all 0.3s ease;
+            min-width: 160px;
         }
         
         .next-btn:hover {
@@ -176,6 +201,12 @@ $objective = $_SESSION['resume_data']['objective'] ?? '';
                 min-height: 200px;
             }
             
+            .btn-container {
+                flex-direction: column-reverse;
+                padding-top: 30px;
+            }
+            
+            .back-btn,
             .next-btn {
                 width: 100%;
             }
@@ -198,6 +229,7 @@ $objective = $_SESSION['resume_data']['objective'] ?? '';
                 </div>
 
                 <div class="btn-container">
+                    <button type="button" class="back-btn" onclick="window.location.href='personal-information.php'">Back</button>
                     <button type="submit" class="next-btn">Next Step</button>
                 </div>
             </form>
