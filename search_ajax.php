@@ -20,16 +20,18 @@ $searchTerm = $conn->real_escape_string($searchTerm);
 $searchPattern = "%{$searchTerm}%";
 
 $sql = "SELECT DISTINCT pi.id, pi.given_name, pi.middle_name, pi.surname, pi.email, pi.phone, pi.address 
-        FROM personal_information pi
-        LEFT JOIN skills s ON pi.id = s.personal_info_id
-        WHERE pi.given_name LIKE ? 
+    FROM personal_information pi
+    LEFT JOIN skills s ON pi.id = s.personal_info_id
+    WHERE pi.cv_title = 'My Resume' AND (
+        pi.given_name LIKE ? 
         OR pi.middle_name LIKE ? 
         OR pi.surname LIKE ? 
         OR pi.email LIKE ? 
         OR pi.phone LIKE ? 
         OR pi.address LIKE ?
         OR s.skill_name LIKE ?
-        ORDER BY pi.surname, pi.given_name";
+    )
+    ORDER BY pi.surname, pi.given_name";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("sssssss", $searchPattern, $searchPattern, $searchPattern, $searchPattern, $searchPattern, $searchPattern, $searchPattern);

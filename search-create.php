@@ -604,8 +604,8 @@ require_once 'config.php';
           <button class="search-btn" onclick="performSearch()">Search</button>
         </div>
         
-        <div class="info-notice">
-        </div>
+        
+        
         
         <div class="results-section" id="resultsView">
           <div class="empty-state">
