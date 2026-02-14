@@ -8,79 +8,100 @@ if (!isset($_SESSION['resume_data']['personal_info_id'])) {
     exit();
 }
 
-// Handle reset
-if (isset($_GET['reset'])) {
-    session_destroy();
-    header('Location: index.php');
-    exit();
-}
-
 // Get all resume data from database
 $conn = getDBConnection();
 $personal_info_id = $_SESSION['resume_data']['personal_info_id'];
 
 // Get personal information
-$sql = "SELECT * FROM personal_information WHERE id = $personal_info_id";
-$result = $conn->query($sql);
+$sql = "SELECT * FROM personal_information WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $personal_info_id);
+$stmt->execute();
+$result = $stmt->get_result();
 $personal = $result->fetch_assoc();
+$stmt->close();
 
 // Get career objective
-$sql = "SELECT objective FROM career_objectives WHERE personal_info_id = $personal_info_id";
-$result = $conn->query($sql);
+$sql = "SELECT objective FROM career_objectives WHERE personal_info_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $personal_info_id);
+$stmt->execute();
+$result = $stmt->get_result();
 $objective = '';
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
     $objective = $row['objective'];
 }
+$stmt->close();
 
 // Get education
-$sql = "SELECT * FROM education WHERE personal_info_id = $personal_info_id ORDER BY start_date DESC";
-$result = $conn->query($sql);
+$sql = "SELECT * FROM education WHERE personal_info_id = ? ORDER BY start_date DESC";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $personal_info_id);
+$stmt->execute();
+$result = $stmt->get_result();
 $education = array();
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
         $education[] = $row;
     }
 }
+$stmt->close();
 
 // Get work experience
-$sql = "SELECT * FROM work_experience WHERE personal_info_id = $personal_info_id ORDER BY start_date DESC";
-$result = $conn->query($sql);
+$sql = "SELECT * FROM work_experience WHERE personal_info_id = ? ORDER BY start_date DESC";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $personal_info_id);
+$stmt->execute();
+$result = $stmt->get_result();
 $work_experience = array();
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
         $work_experience[] = $row;
     }
 }
+$stmt->close();
 
 // Get skills
-$sql = "SELECT * FROM skills WHERE personal_info_id = $personal_info_id";
-$result = $conn->query($sql);
+$sql = "SELECT * FROM skills WHERE personal_info_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $personal_info_id);
+$stmt->execute();
+$result = $stmt->get_result();
 $skills = array();
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
         $skills[] = $row;
     }
 }
+$stmt->close();
 
 // Get interests
-$sql = "SELECT interests FROM interests WHERE personal_info_id = $personal_info_id";
-$result = $conn->query($sql);
+$sql = "SELECT interests FROM interests WHERE personal_info_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $personal_info_id);
+$stmt->execute();
+$result = $stmt->get_result();
 $interests = '';
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
     $interests = $row['interests'];
 }
+$stmt->close();
 
 // Get references
-$sql = "SELECT * FROM reference WHERE personal_info_id = $personal_info_id";
-$result = $conn->query($sql);
+$sql = "SELECT * FROM reference WHERE personal_info_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $personal_info_id);
+$stmt->execute();
+$result = $stmt->get_result();
 $references = array();
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
         $references[] = $row;
     }
 }
+$stmt->close();
 
 closeDBConnection($conn);
 ?>
@@ -309,7 +330,18 @@ closeDBConnection($conn);
     <div class="btn-container">
         <button class="btn-back" onclick="window.location.href='references.php'">Back to Edit</button>
         <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
-        <button class="btn-reset" onclick="if(confirm('Are you sure you want to start over? All data will be lost.')) window.location.href='preview.php?reset=1'">Start New Resume</button>
+        <button class="btn-reset" onclick="confirmSave()">Finish & Go to Dashboard</button>
     </div>
+    
+    <script>
+        function confirmSave() {
+            if(confirm('Your CV has been saved successfully! Click OK to go to your dashboard.')) {
+                // Clear the draft from localStorage
+                localStorage.removeItem('cv_draft_personal_info');
+                // Redirect to dashboard
+                window.location.href='dashboard.php';
+            }
+        }
+    </script>
 </body>
 </html>

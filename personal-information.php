@@ -4,37 +4,74 @@ require_once 'config.php';
 
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Handle file upload
-    $photo_path = '';
+    // Handle file upload with enhanced security validation
+    $photo_path = $_SESSION['resume_data']['personal_info']['photo'] ?? ''; // Keep existing photo if no new upload
+    
     if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
-        $upload_dir = 'uploads/';
-        if (!file_exists($upload_dir)) {
-            mkdir($upload_dir, 0777, true);
+        // Security: Validate file type
+        $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $file_type = $_FILES['photo']['type'];
+        $file_extension = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
+        
+        // Security: Validate file size (max 5MB)
+        $max_size = 5 * 1024 * 1024; // 5MB in bytes
+        
+        // Security: Validate actual file content
+        $image_info = getimagesize($_FILES['photo']['tmp_name']);
+        
+        if (in_array($file_type, $allowed_types) && 
+            in_array($file_extension, $allowed_extensions) &&
+            $_FILES['photo']['size'] <= $max_size &&
+            $image_info !== false) {
+            
+            $upload_dir = 'uploads/photos/';
+            if (!file_exists($upload_dir)) {
+                mkdir($upload_dir, 0755, true); // More secure permissions
+            }
+            
+            // Delete old photo if exists
+            if (!empty($photo_path) && file_exists($photo_path)) {
+                unlink($photo_path);
+            }
+            
+            // Generate unique filename
+            $photo_path = $upload_dir . uniqid('photo_', true) . '.' . $file_extension;
+            move_uploaded_file($_FILES['photo']['tmp_name'], $photo_path);
+        } else {
+            echo "<script>alert('Invalid file. Please upload a valid image (JPG, PNG, GIF, WEBP) under 5MB.');</script>";
         }
-        $file_extension = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
-        $photo_path = $upload_dir . uniqid() . '.' . $file_extension;
-        move_uploaded_file($_FILES['photo']['tmp_name'], $photo_path);
     }
     
-    // Store in SESSION (not database yet!)
-    $_SESSION['resume_data']['personal_info'] = array(
-        'photo' => $photo_path,
-        'given_name' => $_POST['given_name'] ?? '',
-        'middle_name' => $_POST['middle_name'] ?? '',
-        'surname' => $_POST['surname'] ?? '',
-        'extension' => $_POST['extension'] ?? '',
-        'gender' => $_POST['gender'] ?? '',
-        'birthdate' => $_POST['birthdate'] ?? '',
-        'birthplace' => $_POST['birthplace'] ?? '',
-        'civil_status' => $_POST['civil_status'] ?? '',
-        'email' => $_POST['email'] ?? '',
-        'phone' => $_POST['phone'] ?? '',
-        'nationality' => $_POST['nationality'] ?? '',
-        'driving_license' => $_POST['driving_license'] ?? ''
-    );
+    // Validate and sanitize inputs
+    $given_name = trim($_POST['given_name'] ?? '');
+    $surname = trim($_POST['surname'] ?? '');
+    $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
+    $phone = preg_replace('/[^0-9+\-() ]/', '', $_POST['phone'] ?? '');
     
-    header('Location: career-objectives.php');
-    exit();
+    if (empty($given_name) || empty($surname) || !$email) {
+        echo "<script>alert('Please fill in all required fields correctly.');</script>";
+    } else {
+        // Store in SESSION (not database yet!)
+        $_SESSION['resume_data']['personal_info'] = array(
+            'photo' => $photo_path,
+            'given_name' => $given_name,
+            'middle_name' => trim($_POST['middle_name'] ?? ''),
+            'surname' => $surname,
+            'extension' => trim($_POST['extension'] ?? ''),
+            'gender' => $_POST['gender'] ?? '',
+            'birthdate' => $_POST['birthdate'] ?? '',
+            'birthplace' => trim($_POST['birthplace'] ?? ''),
+            'civil_status' => $_POST['civil_status'] ?? '',
+            'email' => $email,
+            'phone' => $phone,
+            'address' => trim($_POST['address'] ?? ''),
+            'website' => filter_var($_POST['website'] ?? '', FILTER_VALIDATE_URL) ?: ''
+        );
+        
+        header('Location: career-objectives.php');
+        exit();
+    }
 }
 
 // Get existing data from session
@@ -81,8 +118,9 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
             background: #ffffff;
             padding: 30px 50px;
             border-radius: 15px;
-            box-shadow:0 10px 60px rgba(0,0,0,0.15);
-            min-height: 650px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
         }
         
         .photo-section {
@@ -193,18 +231,23 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
             font-weight: 600;
         }
         
-        input, select {
+        input, select, textarea {
             width: 100%;
             padding: 11px 13px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
             font-size: 14px;
             background: white;
-            color: #1f2937;
-            transition: all 0.2s ease;
+            color: #2d3748;
+            font-family: Arial, sans-serif;
         }
         
-        input:focus, select:focus {
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -281,6 +324,10 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
             .form-row.two-cols,
             .form-row.name-cols {
                 grid-template-columns: 1fr;
+            }
+            
+            .form-container {
+                padding: 30px 25px;
             }
         }
     </style>
@@ -371,19 +418,22 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
                         <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($data['email'] ?? ''); ?>" required>
                     </div>
                     <div class="form-group">
-                        <label for="nationality">Nationality</label>
-                        <input type="text" id="nationality" name="nationality" value="<?php echo htmlspecialchars($data['nationality'] ?? ''); ?>">
-                    </div>
-                </div>
-                
-                <div class="form-row two-cols">
-                    <div class="form-group">
                         <label for="phone">Phone Number</label>
                         <input type="tel" id="phone" name="phone" value="<?php echo htmlspecialchars($data['phone'] ?? ''); ?>" required>
                     </div>
+                </div>
+                
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="driving_license">Driving License</label>
-                        <input type="text" id="driving_license" name="driving_license" value="<?php echo htmlspecialchars($data['driving_license'] ?? ''); ?>">
+                        <label for="address">Complete Address</label>
+                        <textarea id="address" name="address" rows="2" placeholder="Street, Barangay, City, Province"><?php echo htmlspecialchars($data['address'] ?? ''); ?></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="website">Website (Optional)</label>
+                        <input type="url" id="website" name="website" value="<?php echo htmlspecialchars($data['website'] ?? ''); ?>" placeholder="https://your-portfolio.com">
                     </div>
                 </div>
 
@@ -416,6 +466,36 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
         if (previewImage.src && previewImage.src !== window.location.href) {
             photoPreview.classList.add('has-image');
         }
+        
+        // Auto-save functionality
+        const form = document.querySelector('form');
+        const inputs = form.querySelectorAll('input, select, textarea');
+        
+        inputs.forEach(input => {
+            input.addEventListener('change', function() {
+                // Save to localStorage as backup
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+                localStorage.setItem('cv_draft_personal_info', JSON.stringify(data));
+            });
+        });
+        
+        // Load draft on page load if exists
+        window.addEventListener('load', function() {
+            const draft = localStorage.getItem('cv_draft_personal_info');
+            if (draft && confirm('Would you like to restore your previous draft?')) {
+                const data = JSON.parse(draft);
+                Object.keys(data).forEach(key => {
+                    const input = form.querySelector(`[name="${key}"]`);
+                    if (input && input.type !== 'file') {
+                        input.value = data[key];
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

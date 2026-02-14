@@ -139,11 +139,7 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
         
-        .add-form {
-            border-top: 2px solid #e5e7eb;
-            padding-top: 30px;
-            margin-top: 20px;
-        }
+ 
         
         .section-title {
             color: #1f2937;
