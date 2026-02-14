@@ -56,7 +56,7 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
         
         body { 
             font-family: Arial, sans-serif; 
-            background: #e5e7eb;
+            background: #ffffff;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -66,17 +66,18 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
         
         .main-content {
             position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    margin-left: 0;
-    padding: 0;
-    max-width: 750px;
-    width: 100%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            margin-left: 0;
+            padding: 0;
+            max-width: 750px;
+            width: 100%;
         }
         
         .form-container {
             width: 100%;
+            min-height: 740px;
             background: #ffffff;
             padding: 50px 60px;
             border-radius: 15px;
@@ -139,7 +140,7 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
         }
         
         .add-form {
-            
+            border-top: 2px solid #e5e7eb;
             padding-top: 30px;
             margin-top: 20px;
         }
@@ -196,8 +197,9 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
         
         .btn-container {
             display: flex;
-            justify-content: flex-end;
-            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
             margin-top: 30px;
         }
         
@@ -205,7 +207,7 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
             background: #10b981;
             color: white;
             border: none;
-            padding: 13px 35px;
+            padding: 13px 48px;
             border-radius: 7px;
             font-size: 13px;
             font-weight: 600;
@@ -222,10 +224,10 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
         }
         
         .back-btn {
-            background: #6b7280;
-            color: white;
+            background: #e5e7eb;
+            color: #374151;
             border: none;
-            padding: 13px 35px;
+            padding: 13px 48px;
             border-radius: 7px;
             font-size: 13px;
             font-weight: 600;
@@ -233,12 +235,13 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
             text-transform: uppercase;
             letter-spacing: 1px;
             transition: all 0.3s ease;
+            min-width: 222px;
         }
         
         .back-btn:hover {
-            background: #4b5563;
+            background: #d1d5db;
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(107, 114, 128, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .preview-btn {
@@ -306,7 +309,7 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
             }
             
             .btn-container {
-                flex-direction: column;
+                flex-direction: column-reverse;
             }
             
             .add-btn,
@@ -377,7 +380,7 @@ $references_list = $_SESSION['resume_data']['references'] ?? array();
             
             <!-- Navigation buttons -->
             <form action="references.php" method="post">
-                <div class="btn-container" padding-top: 30px; margin-top: 30px;">
+                <div class="btn-container" padding-top: 30px; margin-top: 30px;>
                     <button type="button" class="back-btn" onclick="window.location.href='interests.php'">Back</button>
                     <button type="submit" name="submit" class="preview-btn">Preview Resume</button>
                 </div>

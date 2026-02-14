@@ -92,6 +92,9 @@ closeDBConnection($conn);
     <title>Resume Preview</title>
     <link rel="stylesheet" href="sidebar.css">
     <style>
+        .sidebar {
+            display: none !important;
+        }
         body { 
             font-family: 'Georgia', serif; 
             max-width: 900px; 

@@ -59,7 +59,7 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
         
         body { 
             font-family: Arial, sans-serif; 
-            background: #e5e7eb;
+            background: #ffffff;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -69,17 +69,18 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
         
         .main-content {
             position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    margin-left: 0;
-    padding: 0;
-    max-width: 750px;
-    width: 100%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            margin-left: 0;
+            padding: 0;
+            max-width: 750px;
+            width: 100%;
         }
         
         .form-container {
             width: 100%;
+            min-height: 740px;
             background: #ffffff;
             padding: 50px 60px;
             border-radius: 15px;
@@ -147,7 +148,7 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
             padding-top: 30px;
             margin-top: 20px;
         }
-        
+        s
         .section-title {
             color: #1f2937;
             font-size: 16px;
@@ -212,7 +213,7 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
             background: #10b981;
             color: white;
             border: none;
-            padding: 13px 35px;
+            padding: 13px 48px;
             border-radius: 7px;
             font-size: 13px;
             font-weight: 600;
@@ -230,9 +231,32 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
         
         .btn-container {
             display: flex;
-            justify-content: flex-end;
-            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
             margin-top: 30px;
+        }
+        
+        .back-btn {
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            padding: 13px 48px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            min-width: 160px;
+            
+        }
+        
+        .back-btn:hover {
+            background: #d1d5db;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .next-btn {
@@ -247,6 +271,7 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
             text-transform: uppercase;
             letter-spacing: 1px;
             transition: all 0.3s ease;
+            min-width: 160px;
         }
         
         .next-btn:hover {
@@ -318,9 +343,10 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
             }
             
             .btn-container {
-                flex-direction: column;
+                flex-direction: column-reverse;
             }
             
+            .back-btn,
             .next-btn,
             .add-btn {
                 width: 100%;
@@ -397,7 +423,8 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
 
             <!-- Navigation buttons -->
             <form action="education.php" method="post">
-                <div class="btn-container"  padding-top: 30px; margin-top: 30px;">
+                <div class="btn-container" padding-top: 30px; margin-top: 30px;">
+                    <button type="button" class="back-btn" onclick="window.location.href='career-objectives.php'">Back</button>
                     <button type="submit" name="next" class="next-btn">Next Step</button>
                 </div>
             </form>
