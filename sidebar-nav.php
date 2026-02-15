@@ -56,14 +56,6 @@
             </li>
         </ul>
         
-        <div class="step-indicator">Final Step</div>
-        <ul>
-            <li>
-                <a href="preview.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'preview.php') ? 'active' : ''; ?>">
-                Preview & Submit
-                </a>
-            </li>
-        </ul>
     </nav>
 </aside>
 
@@ -73,5 +65,57 @@ function toggleSidebar() {
     const overlay = document.querySelector('.sidebar-overlay');
     sidebar.classList.toggle('active');
     overlay.classList.toggle('active');
+    
+    // Prevent body scroll when sidebar is open on mobile
+    if (sidebar.classList.contains('active')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
 }
+
+// Close sidebar when clicking on a navigation link on mobile
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarLinks = document.querySelectorAll('.sidebar nav ul li a');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    });
+    
+    // Handle sidebar first load animation only once per session
+    if (!sessionStorage.getItem('sidebarAnimated')) {
+        sidebar.classList.add('first-load');
+        sessionStorage.setItem('sidebarAnimated', 'true');
+    }
+    
+    // Close sidebar on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Handle window resize
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }, 250);
+    });
+});
 </script>

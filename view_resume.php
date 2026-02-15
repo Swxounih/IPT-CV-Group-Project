@@ -408,7 +408,7 @@ closeDBConnection($conn);
 
             <!-- Action Buttons -->
             <div class="btn-container">
-                <button class="btn-back" onclick="(function(){ sessionStorage.removeItem('view_resume_id'); window.location.href='dashboard.php'; })()">Back to Search</button>
+                <button class="btn-back" onclick="(function(){ sessionStorage.removeItem('view_resume_id'); window.location.href='dashboard.php'; })()">Back to Profile</button>
                 <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
             </div>
         </div>

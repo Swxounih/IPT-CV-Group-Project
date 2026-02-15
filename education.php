@@ -48,311 +48,8 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Education - CV Builder</title>
-    <link rel="stylesheet" href="sidebar.css">
-    <style>
-        /* Page specific styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body { 
-            font-family: Arial, sans-serif; 
-            background: linear-gradient(135deg, #1ebbeb 0%, #3450ce 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .main-content {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            margin-left: 0;
-            padding: 0;
-            max-width: 750px;
-            width: 100%;
-        }
-        
-        .form-container {
-            width: 100%;
-            min-height: 740px;
-            background: #ffffff;
-            padding: 50px 60px;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-            max-height: calc(100vh - 80px);
-            overflow-y: auto;
-        }
-        
-        .form-content {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 18px;
-            margin-bottom: 18px;
-        }
-        
-        .form-row.two-cols {
-            grid-template-columns: 1fr 1fr;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        label {
-            font-size: 11px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 7px;
-            font-weight: 600;
-        }
-        
-        input, textarea {
-            width: 100%;
-            padding: 11px 13px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: Arial, sans-serif;
-            background: white;
-            color: #1f2937;
-            transition: all 0.2s ease;
-        }
-        
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-            line-height: 1.6;
-        }
-        
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
-        .add-form {
-            
-            padding-top: 30px;
-            margin-top: 20px;
-        }
-        s
-        .section-title {
-            color: #1f2937;
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-        
-        .education-list {
-            margin-bottom: 25px;
-        }
-        
-        .education-entry {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            position: relative;
-        }
-        
-        .education-entry h4 {
-            color: #1f2937;
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        
-        .education-entry p {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 8px;
-            line-height: 1.5;
-        }
-        
-        .education-entry p strong {
-            color: #374151;
-            font-weight: 600;
-        }
-        
-        .delete-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-        
-        .delete-btn:hover {
-            background: #dc2626;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-        
-        .add-btn {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 13px 48px;
-            border-radius: 7px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-        }
-        
-        .add-btn:hover {
-            background: #059669;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-        }
-        
-        .btn-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-top: 30px;
-        }
-        
-        .back-btn {
-            background: #e5e7eb;
-            color: #374151;
-            border: none;
-            padding: 13px 48px;
-            border-radius: 7px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            min-width: 160px;
-            
-        }
-        
-        .back-btn:hover {
-            background: #d1d5db;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .next-btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 13px 48px;
-            border-radius: 7px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            min-width: 160px;
-        }
-        
-        .next-btn:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-        }
-        
-        /* Scrollbar styling */
-        .form-container::-webkit-scrollbar {
-            width: 7px;
-        }
-        
-        .form-container::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 10px;
-        }
-        
-        .form-container::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        
-        .form-container::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        
-        textarea::-webkit-scrollbar {
-            width: 7px;
-        }
-        
-        textarea::-webkit-scrollbar-track {
-            background: #f9fafb;
-            border-radius: 10px;
-        }
-        
-        textarea::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 10px;
-        }
-        
-        textarea::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
-        
-        @media (max-width: 1200px) {
-            .main-content {
-                transform: translate(-50%, -50%);
-                max-width: 90%;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            .main-content {
-                transform: translate(-50%, -50%);
-                max-width: 100%;
-            }
-            
-            .form-container {
-                padding: 30px 25px;
-            }
-            
-            .form-row.two-cols {
-                grid-template-columns: 1fr;
-            }
-            
-            .btn-container {
-                flex-direction: column-reverse;
-            }
-            
-            .back-btn,
-            .next-btn,
-            .add-btn {
-                width: 100%;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/cv-builder-styles.css">
 </head>
 <body>
     <!-- Sidebar -->
@@ -382,7 +79,7 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
             <!-- Form to add new education entry -->
             <div class="add-form">
                 <div class="section-title">Add Education Entry</div>
-                <form action="education.php" method="post" class="form-content">
+                <form action="education.php" method="post">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="degree">Degree/Qualification</label>
@@ -415,19 +112,19 @@ $education_list = $_SESSION['resume_data']['education'] ?? array();
                         </div>
                     </div>
 
-                    <div class="btn-container">
+                    <div class="add-btn-container">
                         <button type="submit" name="add_education" class="add-btn">+ Add Education</button>
                     </div>
                 </form>
             </div>
 
-            <!-- Navigation buttons -->
-            <form action="education.php" method="post">
-                <div class="btn-container" padding-top: 30px; margin-top: 30px;">
-                    <button type="button" class="back-btn" onclick="window.location.href='career-objectives.php'">Back</button>
+            <!-- Sticky Navigation Buttons -->
+            <div class="btn-container">
+                <button type="button" class="back-btn" onclick="window.location.href='career-objectives.php'">Back</button>
+                <form action="education.php" method="post" style="display: inline;">
                     <button type="submit" name="next" class="next-btn">Next Step</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 </body>

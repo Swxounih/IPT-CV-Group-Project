@@ -31,6 +31,7 @@ $cvs = [];
 $sql = "SELECT 
             pi.id,
             pi.cv_title,
+            pi.photo,
             pi.given_name,
             pi.middle_name,
             pi.surname,
@@ -64,6 +65,32 @@ function timeAgo($datetime) {
     if ($diff < 2592000) return floor($diff / 604800) . ' weeks ago';
     return floor($diff / 2592000) . ' months ago';
 }
+
+// Helper function to generate avatar with initials
+function getAvatarImage($user_info) {
+    if (!empty($user_info['photo'])) {
+        return 'uploads/photos/' . htmlspecialchars($user_info['photo']);
+    }
+    
+    // Generate initials
+    $initials = strtoupper(substr($user_info['given_name'], 0, 1) . substr($user_info['surname'], 0, 1));
+    
+    // Create SVG with gradient background and initials
+    $svg = <<<SVG
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
+    <defs>
+        <linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'>
+            <stop offset='0%' style='stop-color:#1ebbeb;stop-opacity:1' />
+            <stop offset='100%' style='stop-color:#3450ce;stop-opacity:1' />
+        </linearGradient>
+    </defs>
+    <rect width='200' height='200' fill='url(#grad)'/>
+    <text x='100' y='125' font-family='Arial, sans-serif' font-size='80' font-weight='bold' fill='white' text-anchor='middle'>{$initials}</text>
+</svg>
+SVG;
+    
+    return 'data:image/svg+xml;base64,' . base64_encode($svg);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -71,420 +98,25 @@ function timeAgo($datetime) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CV Builder Dashboard</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
-        
-        /* Left Sidebar Navigation */
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.3);
-        }
-        
-        .sidebar-header {
-            padding: 30px 25px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .sidebar-header h2 {
-            font-size: 24px;
-            margin-bottom: 5px;
-            color: #60a5fa;
-        }
-        
-        .sidebar-header p {
-            font-size: 13px;
-            color: rgba(255,255,255,0.6);
-        }
-        
-        .sidebar-nav {
-            flex: 1;
-            padding: 20px 0;
-        }
-        
-        .sidebar-nav ul {
-            list-style: none;
-        }
-        
-        .sidebar-nav ul li {
-            margin: 5px 0;
-        }
-        
-        .nav-link {
-            display: block;
-            padding: 15px 25px;
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
-        }
-        
-        .nav-link:hover {
-            background: rgba(255,255,255,0.1);
-            border-left-color: #60a5fa;
-            color: white;
-            padding-left: 30px;
-        }
-        
-        .nav-link.active {
-            background: rgba(96,165,250,0.2);
-            border-left-color: #60a5fa;
-            color: white;
-            font-weight: 600;
-        }
-        
-        .sidebar-footer {
-            padding: 20px 25px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .logout-link {
-            display: block;
-            padding: 12px 20px;
-            background: rgba(239,68,68,0.2);
-            color: #fca5a5;
-            text-decoration: none;
-            border-radius: 6px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .logout-link:hover {
-            background: rgba(239,68,68,0.3);
-            color: #fee2e2;
-        }
-        
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-        }
-        
-        .main-section {
-            display: none;
-        }
-        
-        .main-section.active {
-            display: block;
-        }
-        
-        .content-header {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .content-header h1 {
-            font-size: 32px;
-            color: #1e293b;
-            margin-bottom: 10px;
-        }
-        
-        .content-header p {
-            color: #64748b;
-            font-size: 15px;
-        }
-        
-        .menu-toggle {
-            display: none;
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-size: 20px;
-            cursor: pointer;
-            margin-right: 15px;
-        }
-        
-        /* Profile Section */
-        .profile-section,
-        .recent-resumes,
-        .settings-section {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        
-        .profile-section h2,
-        .recent-resumes h2,
-        .settings-section h2 {
-            font-size: 20px;
-            color: #1e293b;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        
-        .profile-content {
-            display: flex;
-            gap: 30px;
-            align-items: flex-start;
-        }
-        
-        .profile-avatar {
-            flex-shrink: 0;
-        }
-        
-        .profile-avatar img {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #667eea;
-        }
-        
-        .profile-details {
-            flex: 1;
-        }
-        
-        .profile-field {
-            margin-bottom: 15px;
-        }
-        
-        .profile-field label {
-            display: block;
-            font-size: 12px;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-        
-        .profile-field p,
-        .profile-field a {
-            font-size: 15px;
-            color: #1e293b;
-        }
-        
-        /* Resumes List */
-        .resumes-list {
-            display: grid;
-            gap: 20px;
-        }
-        
-        .resume-item {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            padding: 20px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-        
-        .resume-item:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-        }
-        
-        .resume-info h3 {
-            font-size: 18px;
-            color: #1e293b;
-            margin-bottom: 8px;
-        }
-        
-        .resume-info p {
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 5px;
-        }
-        
-        .resume-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn-small {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-        
-        .btn-edit {
-            background: #3b82f6;
-            color: white;
-        }
-        
-        .btn-edit:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-        }
-        
-        .btn-view {
-            background: #10b981;
-            color: white;
-        }
-        
-        .btn-view:hover {
-            background: #059669;
-            transform: translateY(-2px);
-        }
-        
-        .btn-delete {
-            background: #ef4444;
-            color: white;
-        }
-        
-        .btn-delete:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
-        }
-        
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #5568d3;
-        }
-        
-        .btn-create-cv {
-            padding: 15px 40px;
-            font-size: 16px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .btn-create-cv .icon {
-            font-size: 22px;
-            font-weight: bold;
-        }
-        
-        /* Danger Zone */
-        .danger-zone {
-            border: 2px solid #fee2e2;
-            background: #fef2f2;
-        }
-        
-        .danger-zone h2 {
-            color: #991b1b;
-            border-bottom-color: #fecaca;
-        }
-        
-        .settings-content {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .setting-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-        }
-        
-        .setting-info h3 {
-            font-size: 16px;
-            color: #1e293b;
-            margin-bottom: 5px;
-        }
-        
-        .setting-info p {
-            font-size: 14px;
-            color: #64748b;
-        }
-        
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                left: -280px;
-                top: 0;
-                height: 100%;
-                z-index: 1000;
-                transition: left 0.3s ease;
-            }
-            
-            .sidebar.active {
-                left: 0;
-            }
-            
-            .main-content {
-                padding: 20px;
-            }
-            
-            .menu-toggle {
-                display: block;
-            }
-            
-            .profile-content {
-                flex-direction: column;
-            }
-            
-            .resume-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-            
-            .resume-actions {
-                width: 100%;
-                flex-wrap: wrap;
-            }
-            
-            .btn-small {
-                flex: 1;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/dashboard-styles.css">
 </head>
 <body>
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h2>📋 CV Builder</h2>
+                <h2>CV Builder</h2>
                 <p>Manage Your Resumes</p>
             </div>
             <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="#" class="nav-link active" onclick="showSection('profile'); return false;">👤 Profile</a></li>
-                    <li><a href="#" class="nav-link" onclick="showSection('my-resumes'); return false;">📄 My Resumes</a></li>
-                    <li><a href="#" class="nav-link" onclick="showSection('account-settings'); return false;">⚙️ Account Settings</a></li>
+                    <li><a href="#" class="nav-link active" onclick="showSection('profile'); return false;">Profile</a></li>
+                    <li><a href="#" class="nav-link" onclick="showSection('my-resumes'); return false;">My Resumes</a></li>
+                    <li><a href="#" class="nav-link" onclick="showSection('account-settings'); return false;">Account Settings</a></li>
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <a href="logout.php" class="logout-link" onclick="return confirm('Are you sure you want to logout?');">🚪 Logout</a>
+                <a href="logout.php" class="logout-link" onclick="return confirm('Are you sure you want to logout?');">Logout</a>
             </div>
         </aside>
 
@@ -505,11 +137,7 @@ function timeAgo($datetime) {
                     <h2>Profile Information</h2>
                     <div class="profile-content">
                         <div class="profile-avatar">
-                            <?php if (!empty($user_info['photo']) && file_exists($user_info['photo'])): ?>
-                                <img src="<?php echo htmlspecialchars($user_info['photo']); ?>" alt="Profile Avatar">
-                            <?php else: ?>
-                                <img src="https://via.placeholder.com/150" alt="Profile Avatar">
-                            <?php endif; ?>
+                            <img src="<?php echo getAvatarImage($user_info); ?>" alt="Profile Avatar">
                         </div>
                         <div class="profile-details">
                             <div class="profile-field">
@@ -572,9 +200,9 @@ function timeAgo($datetime) {
                                         <?php endif; ?>
                                     </div>
                                     <div class="resume-actions">
-                                        <button class="btn-small btn-edit" onclick="window.location.href='edit-cv-inline.php?id=<?php echo $cv['id']; ?>'">✏️ Edit</button>
-                                        <button class="btn-small btn-view" onclick="window.location.href='view_resume.php?id=<?php echo $cv['id']; ?>'">👁️ View</button>
-                                        <button class="btn-small btn-delete" onclick="if(confirm('Are you sure you want to delete this CV? This action cannot be undone.')) window.location.href='delete-cv.php?id=<?php echo $cv['id']; ?>'">🗑️ Delete</button>
+                                        <button class="btn-small btn-edit" onclick="window.location.href='edit-cv-inline.php?id=<?php echo $cv['id']; ?>'">Edit</button>
+                                        <button class="btn-small btn-view" onclick="window.location.href='view_resume.php?id=<?php echo $cv['id']; ?>'">View</button>
+                                        <button class="btn-small btn-delete" onclick="if(confirm('Are you sure you want to delete this CV? This action cannot be undone.')) window.location.href='delete-cv.php?id=<?php echo $cv['id']; ?>'">Delete</button>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -614,11 +242,7 @@ function timeAgo($datetime) {
                     <h2>Profile Settings</h2>
                     <div class="profile-content">
                         <div class="profile-avatar">
-                            <?php if (!empty($user_info['photo']) && file_exists($user_info['photo'])): ?>
-                                <img src="<?php echo htmlspecialchars($user_info['photo']); ?>" alt="Profile Avatar">
-                            <?php else: ?>
-                                <img src="https://via.placeholder.com/150" alt="Profile Avatar">
-                            <?php endif; ?>
+                            <img src="<?php echo getAvatarImage($user_info); ?>" alt="Profile Avatar">
                         </div>
                         <div class="profile-details">
                             <div class="profile-field">
@@ -646,14 +270,14 @@ function timeAgo($datetime) {
 
                 <!-- Danger Zone -->
                 <section class="settings-section danger-zone">
-                    <h2>⚠️ Danger Zone</h2>
+                    <h2>⚠ Danger Zone</h2>
                     <div class="settings-content">
                         <div class="setting-item">
                             <div class="setting-info">
                                 <h3>Delete Account</h3>
                                 <p>Permanently delete your account and all <?php echo count($cvs); ?> resume(s)</p>
                             </div>
-                            <button class="btn-small btn-delete" onclick="if(confirm('⚠️ WARNING: This will permanently delete your account and ALL <?php echo count($cvs); ?> resume(s). This action CANNOT be undone! Are you absolutely sure?')) window.location.href='delete-account.php'">Delete Account</button>
+                            <button class="btn-small btn-delete" onclick="if(confirm('⚠ WARNING: This will permanently delete your account and ALL <?php echo count($cvs); ?> resume(s). This action CANNOT be undone! Are you absolutely sure?')) window.location.href='delete-account.php'">Delete Account</button>
                         </div>
                     </div>
                 </section>
@@ -697,7 +321,15 @@ function timeAgo($datetime) {
         // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function(event) {
             const sidebar = document.getElementById('sidebar');
-            const toggle = document.querySelector('.menu-toggle');
+            const toggleButtons = document.querySelectorAll('.menu-toggle');
+            let isToggle = false;
+            
+            // Check if click is on any toggle button
+            toggleButtons.forEach(button => {
+                if (button.contains(event.target)) {
+                    isToggle = true;
+                }
+            });
             
             if (window.innerWidth <= 768 && 
                 sidebar.classList.contains('active') && 

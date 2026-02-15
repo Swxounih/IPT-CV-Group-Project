@@ -328,7 +328,7 @@ closeDBConnection($conn);
 
     <!-- Action Buttons -->
     <div class="btn-container">
-        <button class="btn-back" onclick="window.location.href='references.php'">Back to Edit</button>
+        <button class="btn-back" onclick="window.location.href='index.php'">Back to Home</button>
         <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
         <button class="btn-reset" onclick="confirmSave()">Finish & Go to Dashboard</button>
     </div>

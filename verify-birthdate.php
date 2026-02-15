@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1ebbeb 0%, #3450ce 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -215,8 +215,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="verify-container">
         <div class="verify-header">
-            <h1>🔒 Verify Your Identity</h1>
-            <p>Please enter your birthdate to access your account</p>
+            <h1>Verify Your Identity</h1>
+            <!-- <p>Please enter your birthdate to access your account</p> -->
         </div>
         
         <div class="user-info">

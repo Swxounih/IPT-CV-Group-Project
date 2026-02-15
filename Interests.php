@@ -19,230 +19,18 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interests & Hobbies - CV Builder</title>
-    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/cv-builder-styles.css">
     <style>
-        /* Page specific styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body { 
-            font-family: Arial, sans-serif; 
-            background: linear-gradient(135deg, #1ebbeb 0%, #3450ce 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .main-content {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            margin-left: 0;
-            padding: 0;
-            max-width: 750px;
-            width: 100%;
-        }
-        
-        .form-container {
-            width: 100%;
-            background: #ffffff;
-            padding: 50px 60px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            max-height: calc(100vh - 80px);
-            min-height: 740px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .section-title {
-            color: #1f2937;
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-        
-        .form-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
+        /* Page-specific overrides */
         .form-row {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 18px;
-            margin-bottom: 18px;
             flex: 1;
         }
         
-        .form-group {
-            display: flex;
-            flex-direction: column;
+        .form-row textarea {
             flex: 1;
-        }
-        
-        label {
-            font-size: 11px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 7px;
-            font-weight: 600;
-        }
-        
-        textarea {
-            width: 100%;
-            flex: 1;
-            padding: 11px 13px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 14px;
-            background: white;
-            color: #1f2937;
-            transition: all 0.2s ease;
-            font-family: Arial, sans-serif;
-            resize: none;
             min-height: 300px;
-            line-height: 1.6;
-        }
-        
-        textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
-        .btn-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-top: auto;
-            padding-top: 60px;
-        }
-        
-        .back-btn {
-            background: #e5e7eb;
-            color: #374151;
-            border: none;
-            padding: 13px 48px;
-            border-radius: 7px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            min-width: 160px;
-        }
-        
-        .back-btn:hover {
-            background: #d1d5db;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .next-btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 13px 48px;
-            border-radius: 7px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            min-width: 160px;
-        }
-        
-        .next-btn:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-        }
-        
-        /* Scrollbar styling */
-        .form-container::-webkit-scrollbar {
-            width: 7px;
-        }
-        
-        .form-container::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 10px;
-        }
-        
-        .form-container::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        
-        .form-container::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        
-        textarea::-webkit-scrollbar {
-            width: 7px;
-        }
-        
-        textarea::-webkit-scrollbar-track {
-            background: #f9fafb;
-            border-radius: 10px;
-        }
-        
-        textarea::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 10px;
-        }
-        
-        textarea::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
-        
-        @media (max-width: 1200px) {
-            .main-content {
-                transform: translate(-50%, -50%);
-                max-width: 90%;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            .main-content {
-                transform: translate(-50%, -50%);
-                max-width: 100%;
-            }
-            
-            .form-container {
-                padding: 30px 25px;
-                min-height: 350px;
-            }
-            
-            textarea {
-                min-height: 200px;
-            }
-            
-            .btn-container {
-                flex-direction: column-reverse;
-                padding-top: 30px;
-            }
-            
-            .back-btn,
-            .next-btn {
-                width: 100%;
-            }
+            resize: none;
         }
     </style>
 </head>
@@ -259,12 +47,13 @@ $interests = $_SESSION['resume_data']['interests'] ?? '';
                         <textarea id="interests" name="interests" placeholder="e.g., Photography, Hiking, Reading, Playing Guitar, Volunteering..."><?php echo htmlspecialchars($interests); ?></textarea>
                     </div>
                 </div>
-
-                <div class="btn-container">
-                    <button type="button" class="back-btn" onclick="window.location.href='skills.php'">Back</button>
-                    <button type="submit" class="next-btn">Next Step</button>
-                </div>
             </form>
+
+            <!-- Sticky Navigation Buttons -->
+            <div class="btn-container">
+                <button type="button" class="back-btn" onclick="window.location.href='skills.php'">Back</button>
+                <button type="button" class="next-btn" onclick="document.querySelector('form').submit()">Next Step</button>
+            </div>
         </div>
     </div>
 </body>

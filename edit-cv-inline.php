@@ -33,6 +33,15 @@ if (!$cv_data || $cv_data['user_id'] !== $user_id) {
     exit();
 }
 
+// Load existing CV data first
+$sql = "SELECT * FROM personal_information WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $cv_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$personal_info = $result->fetch_assoc();
+$stmt->close();
+
 $success_message = '';
 $error_message = '';
 
@@ -41,20 +50,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $conn->begin_transaction();
 
+        // Handle photo upload
+        $photo_filename = $personal_info['photo'];
+        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+            $file_tmp = $_FILES['photo']['tmp_name'];
+            $file_name = $_FILES['photo']['name'];
+            $file_size = $_FILES['photo']['size'];
+            $file_type = mime_content_type($file_tmp);
+            
+            // Validate file size (max 5MB)
+            if ($file_size > 5 * 1024 * 1024) {
+                throw new Exception('File size exceeds 5MB limit');
+            }
+            
+            // Validate file type
+            $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!in_array($file_type, $allowed_types)) {
+                throw new Exception('Only JPG, PNG, and GIF files are allowed');
+            }
+            
+            // Create uploads directory if it doesn't exist
+            if (!is_dir('uploads/photos')) {
+                mkdir('uploads/photos', 0755, true);
+            }
+            
+            // Delete old photo if it exists
+            if (!empty($personal_info['photo']) && file_exists('uploads/photos/' . $personal_info['photo'])) {
+                unlink('uploads/photos/' . $personal_info['photo']);
+            }
+            
+            // Generate unique filename
+            $file_ext = pathinfo($file_name, PATHINFO_EXTENSION);
+            $photo_filename = 'photo_' . $cv_id . '_' . time() . '.' . $file_ext;
+            $file_path = 'uploads/photos/' . $photo_filename;
+            
+            if (!move_uploaded_file($file_tmp, $file_path)) {
+                throw new Exception('Failed to upload photo');
+            }
+        }
+
         // Update personal information
         $sql = "UPDATE personal_information SET 
                 given_name = ?, middle_name = ?, surname = ?, extension = ?,
                 gender = ?, birthdate = ?, birthplace = ?, civil_status = ?,
                 email = ?, phone = ?, address = ?, website = ?, 
-                cv_title = ?, updated_at = NOW()
+                photo = ?, updated_at = NOW()
                 WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        $cv_title = $_POST['cv_title'] ?? 'My Resume';
+        
+        $given_name = $_POST['given_name'] ?? '';
+        $middle_name = $_POST['middle_name'] ?? '';
+        $surname = $_POST['surname'] ?? '';
+        $extension = $_POST['extension'] ?? '';
+        $gender = $_POST['gender'] ?? '';
+        $birthdate = $_POST['birthdate'] ?? '';
+        $birthplace = $_POST['birthplace'] ?? '';
+        $civil_status = $_POST['civil_status'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $phone = $_POST['phone'] ?? '';
+        $address = $_POST['address'] ?? '';
+        $website = $_POST['website'] ?? '';
+        
         $stmt->bind_param("sssssssssssssi",
-            $_POST['given_name'], $_POST['middle_name'], $_POST['surname'], $_POST['extension'],
-            $_POST['gender'], $_POST['birthdate'], $_POST['birthplace'], $_POST['civil_status'],
-            $_POST['email'], $_POST['phone'], $_POST['address'], $_POST['website'], 
-            $cv_title, $cv_id);
+            $given_name, $middle_name, $surname, $extension,
+            $gender, $birthdate, $birthplace, $civil_status,
+            $email, $phone, $address, $website, 
+            $photo_filename, $cv_id);
         $stmt->execute();
         $stmt->close();
 
@@ -68,7 +129,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($_POST['objective'])) {
             $sql = "INSERT INTO career_objectives (personal_info_id, objective) VALUES (?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("is", $cv_id, $_POST['objective']);
+            $objective_text = $_POST['objective'];
+            $stmt->bind_param("is", $cv_id, $objective_text);
             $stmt->execute();
             $stmt->close();
         }
@@ -85,15 +147,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare($sql);
             foreach ($_POST['education'] as $edu) {
                 if (!empty($edu['degree']) || !empty($edu['institution'])) {
-                    $stmt->bind_param("isssss", $cv_id, $edu['degree'], $edu['institution'], 
-                                     $edu['start_date'] ?? null, $edu['end_date'] ?? null, $edu['description'] ?? null);
+                    $edu_degree = $edu['degree'] ?? '';
+                    $edu_institution = $edu['institution'] ?? '';
+                    $edu_start_date = $edu['start_date'] ?? null;
+                    $edu_end_date = $edu['end_date'] ?? null;
+                    $edu_description = $edu['description'] ?? null;
+                    $stmt->bind_param("isssss", $cv_id, $edu_degree, $edu_institution, 
+                                     $edu_start_date, $edu_end_date, $edu_description);
                     $stmt->execute();
                 }
             }
             $stmt->close();
         }
 
-        // Handle work experience (FIXED: using job_title, employer, city)
+        // Handle work experience
         $sql = "DELETE FROM work_experience WHERE personal_info_id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $cv_id);
@@ -105,15 +172,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare($sql);
             foreach ($_POST['work_experience'] as $work) {
                 if (!empty($work['job_title']) || !empty($work['employer'])) {
-                    $stmt->bind_param("issssss", $cv_id, $work['job_title'], $work['employer'], 
-                                     $work['city'] ?? '', $work['start_date'] ?? null, $work['end_date'] ?? null, $work['description'] ?? null);
+                    $work_job_title = $work['job_title'] ?? '';
+                    $work_employer = $work['employer'] ?? '';
+                    $work_city = $work['city'] ?? '';
+                    $work_start_date = $work['start_date'] ?? null;
+                    $work_end_date = $work['end_date'] ?? null;
+                    $work_description = $work['description'] ?? null;
+                    $stmt->bind_param("issssss", $cv_id, $work_job_title, $work_employer, 
+                                     $work_city, $work_start_date, $work_end_date, $work_description);
                     $stmt->execute();
                 }
             }
             $stmt->close();
         }
 
-        // Handle skills (FIXED: using level instead of proficiency)
+        // Handle skills
         $sql = "DELETE FROM skills WHERE personal_info_id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $cv_id);
@@ -125,7 +198,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare($sql);
             foreach ($_POST['skills'] as $skill) {
                 if (!empty($skill['skill_name'])) {
-                    $stmt->bind_param("iss", $cv_id, $skill['skill_name'], $skill['level'] ?? 'Intermediate');
+                    $skill_name = $skill['skill_name'] ?? '';
+                    $skill_level = $skill['level'] ?? 'Intermediate';
+                    $stmt->bind_param("iss", $cv_id, $skill_name, $skill_level);
                     $stmt->execute();
                 }
             }
@@ -142,12 +217,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($_POST['interests'])) {
             $sql = "INSERT INTO interests (personal_info_id, interests) VALUES (?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("is", $cv_id, $_POST['interests']);
+            $interests_text = $_POST['interests'];
+            $stmt->bind_param("is", $cv_id, $interests_text);
             $stmt->execute();
             $stmt->close();
         }
 
-        // Handle references (FIXED: using contact_person, company_name, phone_number)
+        // Handle references
         $sql = "DELETE FROM reference WHERE personal_info_id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $cv_id);
@@ -159,8 +235,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare($sql);
             foreach ($_POST['references'] as $ref) {
                 if (!empty($ref['contact_person'])) {
-                    $stmt->bind_param("issss", $cv_id, $ref['contact_person'], $ref['company_name'] ?? null, 
-                                     $ref['phone_number'] ?? null, $ref['email'] ?? null);
+                    $ref_contact_person = $ref['contact_person'] ?? '';
+                    $ref_company_name = $ref['company_name'] ?? null;
+                    $ref_phone_number = $ref['phone_number'] ?? null;
+                    $ref_email = $ref['email'] ?? null;
+                    $stmt->bind_param("issss", $cv_id, $ref_contact_person, $ref_company_name, 
+                                     $ref_phone_number, $ref_email);
                     $stmt->execute();
                 }
             }
@@ -168,21 +248,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $conn->commit();
-        $success_message = "CV updated successfully!";
+        $success_message = "Resume updated successfully!";
+        
+        // Reload data after update
+        $sql = "SELECT * FROM personal_information WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $cv_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $personal_info = $result->fetch_assoc();
+        $stmt->close();
+        
     } catch (Exception $e) {
         $conn->rollback();
-        $error_message = "Error updating CV: " . $e->getMessage();
+        $error_message = "Error updating resume: " . $e->getMessage();
     }
 }
-
-// Load existing CV data
-$sql = "SELECT * FROM personal_information WHERE id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $cv_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$personal_info = $result->fetch_assoc();
-$stmt->close();
 
 // Load objective
 $sql = "SELECT objective FROM career_objectives WHERE personal_info_id = ?";
@@ -257,333 +338,101 @@ closeDBConnection($conn);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit CV - <?php echo htmlspecialchars($personal_info['given_name'] . ' ' . $personal_info['surname']); ?></title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header h1 {
-            font-size: 28px;
-            font-weight: 600;
-        }
-        
-        .header .back-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 2px solid white;
-            padding: 10px 25px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .header .back-btn:hover {
-            background: white;
-            color: #667eea;
-        }
-        
-        .content {
-            padding: 40px;
-        }
-        
-        .alert {
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-        
-        .alert-success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #10b981;
-        }
-        
-        .alert-error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #ef4444;
-        }
-        
-        .section {
-            margin-bottom: 40px;
-            padding-bottom: 40px;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        
-        .section:last-child {
-            border-bottom: none;
-        }
-        
-        .section-title {
-            font-size: 22px;
-            color: #1f2937;
-            margin-bottom: 25px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-            display: inline-block;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .form-row.full {
-            grid-template-columns: 1fr;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #4b5563;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        input, textarea, select {
-            padding: 12px 15px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 15px;
-            font-family: inherit;
-            transition: all 0.3s ease;
-        }
-        
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-            line-height: 1.6;
-        }
-        
-        .entry-item {
-            background: #f9fafb;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-        
-        .entry-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        
-        .entry-header h4 {
-            font-size: 18px;
-            color: #1f2937;
-        }
-        
-        .entry-number {
-            background: #667eea;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 16px;
-        }
-        
-        .btn-add {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-add:hover {
-            background: #059669;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-        }
-        
-        .btn-remove-entry {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-remove-entry:hover {
-            background: #dc2626;
-        }
-        
-        .btn-save {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 15px 50px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .btn-save:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-container {
-            margin-top: 40px;
-            text-align: center;
-        }
-        
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .content {
-                padding: 20px;
-            }
-            
-            .header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-        }
-    </style>
+    <title>Edit Resume - <?php echo htmlspecialchars($personal_info['given_name'] . ' ' . $personal_info['surname']); ?></title>
+    <link rel="stylesheet" href="css/edit-cv-inline-style.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>✏️ Edit Resume</h1>
-            <a href="dashboard.php" class="back-btn">← Back to Dashboard</a>
+            <h1>Edit Your Resume</h1>
+            <a href="dashboard.php" class="back-btn">Back to Dashboard</a>
         </div>
         
         <div class="content">
             <?php if ($success_message): ?>
-                <div class="alert alert-success">✓ <?php echo htmlspecialchars($success_message); ?></div>
+                <div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div>
             <?php endif; ?>
             
             <?php if ($error_message): ?>
-                <div class="alert alert-error">✗ <?php echo htmlspecialchars($error_message); ?></div>
+                <div class="alert alert-error"><?php echo htmlspecialchars($error_message); ?></div>
             <?php endif; ?>
             
-            <form method="POST" action="">
+            <form method="POST" action="" enctype="multipart/form-data" id="cvForm">
                 <!-- Personal Information Section -->
                 <div class="section">
                     <h2 class="section-title">Personal Information</h2>
                     
-                    <div class="form-row">
+                    <div class="form-row full">
                         <div class="form-group">
-                            <label for="cv_title">Resume Title</label>
-                            <input type="text" id="cv_title" name="cv_title" value="<?php echo htmlspecialchars($personal_info['cv_title'] ?? 'My Resume'); ?>">
+                            <label for="photo">Profile Photo</label>
+                            <div class="photo-upload-wrapper">
+                                <div class="photo-upload-input">
+                                    <label for="photo" class="file-input-label">Choose Photo</label>
+                                    <input type="file" id="photo" name="photo" accept="image/*" style="display: none;">
+                                    <small class="file-hint">Max 5MB. JPG, PNG, or GIF format</small>
+                                </div>
+                                <?php if (!empty($personal_info['photo'])): ?>
+                                <div class="photo-preview-container">
+                                    <img src="uploads/photos/<?php echo htmlspecialchars($personal_info['photo']); ?>" 
+                                         alt="Profile Photo" 
+                                         class="current-photo"
+                                         id="photoPreview">
+                                </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="given_name">First Name *</label>
-                            <input type="text" id="given_name" name="given_name" value="<?php echo htmlspecialchars($personal_info['given_name']); ?>" required>
+                            <label for="given_name">First Name</label>
+                            <input type="text" id="given_name" name="given_name" 
+                                   value="<?php echo htmlspecialchars($personal_info['given_name']); ?>" required>
                         </div>
                         <div class="form-group">
                             <label for="middle_name">Middle Name</label>
-                            <input type="text" id="middle_name" name="middle_name" value="<?php echo htmlspecialchars($personal_info['middle_name'] ?? ''); ?>">
+                            <input type="text" id="middle_name" name="middle_name" 
+                                   value="<?php echo htmlspecialchars($personal_info['middle_name'] ?? ''); ?>">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="surname">Last Name *</label>
-                            <input type="text" id="surname" name="surname" value="<?php echo htmlspecialchars($personal_info['surname']); ?>" required>
+                            <label for="surname">Last Name</label>
+                            <input type="text" id="surname" name="surname" 
+                                   value="<?php echo htmlspecialchars($personal_info['surname']); ?>" required>
                         </div>
                         <div class="form-group">
                             <label for="extension">Extension</label>
-                            <input type="text" id="extension" name="extension" value="<?php echo htmlspecialchars($personal_info['extension'] ?? ''); ?>" placeholder="Jr., Sr., III">
+                            <input type="text" id="extension" name="extension" 
+                                   value="<?php echo htmlspecialchars($personal_info['extension'] ?? ''); ?>" 
+                                   placeholder="Jr., Sr., III">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="gender">Gender *</label>
+                            <label for="gender">Gender</label>
                             <select id="gender" name="gender" required>
                                 <option value="male" <?php echo $personal_info['gender'] === 'male' ? 'selected' : ''; ?>>Male</option>
                                 <option value="female" <?php echo $personal_info['gender'] === 'female' ? 'selected' : ''; ?>>Female</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="birthdate">Date of Birth *</label>
-                            <input type="date" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($personal_info['birthdate']); ?>" required>
+                            <label for="birthdate">Date of Birth</label>
+                            <input type="date" id="birthdate" name="birthdate" 
+                                   value="<?php echo htmlspecialchars($personal_info['birthdate']); ?>" required>
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="birthplace">Place of Birth *</label>
-                            <input type="text" id="birthplace" name="birthplace" value="<?php echo htmlspecialchars($personal_info['birthplace']); ?>" required>
+                            <label for="birthplace">Place of Birth</label>
+                            <input type="text" id="birthplace" name="birthplace" 
+                                   value="<?php echo htmlspecialchars($personal_info['birthplace']); ?>" required>
                         </div>
                         <div class="form-group">
-                            <label for="civil_status">Civil Status *</label>
+                            <label for="civil_status">Civil Status</label>
                             <select id="civil_status" name="civil_status" required>
                                 <option value="single" <?php echo $personal_info['civil_status'] === 'single' ? 'selected' : ''; ?>>Single</option>
                                 <option value="married" <?php echo $personal_info['civil_status'] === 'married' ? 'selected' : ''; ?>>Married</option>
@@ -595,12 +444,14 @@ closeDBConnection($conn);
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="email">Email *</label>
-                            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($personal_info['email']); ?>" required>
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" 
+                                   value="<?php echo htmlspecialchars($personal_info['email']); ?>" required>
                         </div>
                         <div class="form-group">
-                            <label for="phone">Phone *</label>
-                            <input type="tel" id="phone" name="phone" value="<?php echo htmlspecialchars($personal_info['phone']); ?>" required>
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" 
+                                   value="<?php echo htmlspecialchars($personal_info['phone']); ?>" required>
                         </div>
                     </div>
                     
@@ -613,8 +464,10 @@ closeDBConnection($conn);
                     
                     <div class="form-row full">
                         <div class="form-group">
-                            <label for="website">Website</label>
-                            <input type="url" id="website" name="website" value="<?php echo htmlspecialchars($personal_info['website'] ?? ''); ?>" placeholder="https://">
+                            <label for="website">Website / Portfolio</label>
+                            <input type="url" id="website" name="website" 
+                                   value="<?php echo htmlspecialchars($personal_info['website'] ?? ''); ?>" 
+                                   placeholder="https://your-website.com">
                         </div>
                     </div>
                 </div>
@@ -625,7 +478,8 @@ closeDBConnection($conn);
                     <div class="form-row full">
                         <div class="form-group">
                             <label for="objective">Your Career Objective</label>
-                            <textarea id="objective" name="objective" rows="4"><?php echo htmlspecialchars($objective); ?></textarea>
+                            <textarea id="objective" name="objective" rows="5" 
+                                      placeholder="Describe your career goals and aspirations..."><?php echo htmlspecialchars($objective); ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -639,40 +493,45 @@ closeDBConnection($conn);
                             <div class="entry-header">
                                 <div style="display: flex; align-items: center; gap: 15px;">
                                     <span class="entry-number"><?php echo $index + 1; ?></span>
-                                    <h4><?php echo htmlspecialchars($edu['degree']); ?></h4>
+                                    <h4><?php echo htmlspecialchars($edu['degree'] ?: 'Education Entry'); ?></h4>
                                 </div>
                                 <button type="button" class="btn-remove-entry" onclick="removeEducation(this)">Remove</button>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Degree/Certification</label>
-                                    <input type="text" name="education[<?php echo $index; ?>][degree]" value="<?php echo htmlspecialchars($edu['degree']); ?>">
+                                    <label>Degree / Certification</label>
+                                    <input type="text" name="education[<?php echo $index; ?>][degree]" 
+                                           value="<?php echo htmlspecialchars($edu['degree']); ?>">
                                 </div>
                                 <div class="form-group">
-                                    <label>Institution</label>
-                                    <input type="text" name="education[<?php echo $index; ?>][institution]" value="<?php echo htmlspecialchars($edu['institution']); ?>">
+                                    <label>Institution / School</label>
+                                    <input type="text" name="education[<?php echo $index; ?>][institution]" 
+                                           value="<?php echo htmlspecialchars($edu['institution']); ?>">
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Start Date</label>
-                                    <input type="date" name="education[<?php echo $index; ?>][start_date]" value="<?php echo htmlspecialchars($edu['start_date'] ?? ''); ?>">
+                                    <input type="date" name="education[<?php echo $index; ?>][start_date]" 
+                                           value="<?php echo htmlspecialchars($edu['start_date'] ?? ''); ?>">
                                 </div>
                                 <div class="form-group">
                                     <label>End Date</label>
-                                    <input type="date" name="education[<?php echo $index; ?>][end_date]" value="<?php echo htmlspecialchars($edu['end_date'] ?? ''); ?>">
+                                    <input type="date" name="education[<?php echo $index; ?>][end_date]" 
+                                           value="<?php echo htmlspecialchars($edu['end_date'] ?? ''); ?>">
                                 </div>
                             </div>
                             <div class="form-row full">
                                 <div class="form-group">
-                                    <label>Description/Honors</label>
-                                    <textarea name="education[<?php echo $index; ?>][description]"><?php echo htmlspecialchars($edu['description'] ?? ''); ?></textarea>
+                                    <label>Description / Honors</label>
+                                    <textarea name="education[<?php echo $index; ?>][description]" 
+                                              placeholder="Achievements, honors, GPA, etc."><?php echo htmlspecialchars($edu['description'] ?? ''); ?></textarea>
                                 </div>
                             </div>
                         </div>
                         <?php endforeach; ?>
                     </div>
-                    <button type="button" class="btn-add" onclick="addEducation()">+ Add Education</button>
+                    <button type="button" class="btn-add" onclick="addEducation()">Add Education</button>
                 </div>
                 
                 <!-- Work Experience Section -->
@@ -684,47 +543,53 @@ closeDBConnection($conn);
                             <div class="entry-header">
                                 <div style="display: flex; align-items: center; gap: 15px;">
                                     <span class="entry-number"><?php echo $index + 1; ?></span>
-                                    <h4><?php echo htmlspecialchars($work['job_title']); ?></h4>
+                                    <h4><?php echo htmlspecialchars($work['job_title'] ?: 'Work Experience'); ?></h4>
                                 </div>
                                 <button type="button" class="btn-remove-entry" onclick="removeExperience(this)">Remove</button>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Job Title</label>
-                                    <input type="text" name="work_experience[<?php echo $index; ?>][job_title]" value="<?php echo htmlspecialchars($work['job_title']); ?>">
+                                    <input type="text" name="work_experience[<?php echo $index; ?>][job_title]" 
+                                           value="<?php echo htmlspecialchars($work['job_title']); ?>">
                                 </div>
                                 <div class="form-group">
-                                    <label>Company/Employer</label>
-                                    <input type="text" name="work_experience[<?php echo $index; ?>][employer]" value="<?php echo htmlspecialchars($work['employer']); ?>">
+                                    <label>Company / Employer</label>
+                                    <input type="text" name="work_experience[<?php echo $index; ?>][employer]" 
+                                           value="<?php echo htmlspecialchars($work['employer']); ?>">
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>City/Location</label>
-                                    <input type="text" name="work_experience[<?php echo $index; ?>][city]" value="<?php echo htmlspecialchars($work['city'] ?? ''); ?>">
+                                    <label>City / Location</label>
+                                    <input type="text" name="work_experience[<?php echo $index; ?>][city]" 
+                                           value="<?php echo htmlspecialchars($work['city'] ?? ''); ?>">
                                 </div>
                                 <div class="form-group"></div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Start Date</label>
-                                    <input type="date" name="work_experience[<?php echo $index; ?>][start_date]" value="<?php echo htmlspecialchars($work['start_date'] ?? ''); ?>">
+                                    <input type="date" name="work_experience[<?php echo $index; ?>][start_date]" 
+                                           value="<?php echo htmlspecialchars($work['start_date'] ?? ''); ?>">
                                 </div>
                                 <div class="form-group">
                                     <label>End Date</label>
-                                    <input type="date" name="work_experience[<?php echo $index; ?>][end_date]" value="<?php echo htmlspecialchars($work['end_date'] ?? ''); ?>">
+                                    <input type="date" name="work_experience[<?php echo $index; ?>][end_date]" 
+                                           value="<?php echo htmlspecialchars($work['end_date'] ?? ''); ?>">
                                 </div>
                             </div>
                             <div class="form-row full">
                                 <div class="form-group">
-                                    <label>Job Description/Achievements</label>
-                                    <textarea name="work_experience[<?php echo $index; ?>][description]"><?php echo htmlspecialchars($work['description'] ?? ''); ?></textarea>
+                                    <label>Job Description / Achievements</label>
+                                    <textarea name="work_experience[<?php echo $index; ?>][description]" 
+                                              placeholder="Responsibilities, achievements, skills used..."><?php echo htmlspecialchars($work['description'] ?? ''); ?></textarea>
                                 </div>
                             </div>
                         </div>
                         <?php endforeach; ?>
                     </div>
-                    <button type="button" class="btn-add" onclick="addExperience()">+ Add Experience</button>
+                    <button type="button" class="btn-add" onclick="addExperience()">Add Experience</button>
                 </div>
                 
                 <!-- Skills Section -->
@@ -736,14 +601,15 @@ closeDBConnection($conn);
                             <div class="entry-header">
                                 <div style="display: flex; align-items: center; gap: 15px;">
                                     <span class="entry-number"><?php echo $index + 1; ?></span>
-                                    <h4><?php echo htmlspecialchars($skill['skill_name']); ?></h4>
+                                    <h4><?php echo htmlspecialchars($skill['skill_name'] ?: 'Skill'); ?></h4>
                                 </div>
                                 <button type="button" class="btn-remove-entry" onclick="removeSkill(this)">Remove</button>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Skill Name</label>
-                                    <input type="text" name="skills[<?php echo $index; ?>][skill_name]" value="<?php echo htmlspecialchars($skill['skill_name']); ?>">
+                                    <input type="text" name="skills[<?php echo $index; ?>][skill_name]" 
+                                           value="<?php echo htmlspecialchars($skill['skill_name']); ?>">
                                 </div>
                                 <div class="form-group">
                                     <label>Proficiency Level</label>
@@ -759,7 +625,7 @@ closeDBConnection($conn);
                         </div>
                         <?php endforeach; ?>
                     </div>
-                    <button type="button" class="btn-add" onclick="addSkill()">+ Add Skill</button>
+                    <button type="button" class="btn-add" onclick="addSkill()">Add Skill</button>
                 </div>
                 
                 <!-- Interests Section -->
@@ -768,7 +634,8 @@ closeDBConnection($conn);
                     <div class="form-row full">
                         <div class="form-group">
                             <label for="interests">Your Interests and Hobbies</label>
-                            <textarea id="interests" name="interests" rows="4"><?php echo htmlspecialchars($interests); ?></textarea>
+                            <textarea id="interests" name="interests" rows="4" 
+                                      placeholder="Reading, Photography, Traveling, etc."><?php echo htmlspecialchars($interests); ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -782,38 +649,42 @@ closeDBConnection($conn);
                             <div class="entry-header">
                                 <div style="display: flex; align-items: center; gap: 15px;">
                                     <span class="entry-number"><?php echo $index + 1; ?></span>
-                                    <h4><?php echo htmlspecialchars($ref['contact_person']); ?></h4>
+                                    <h4><?php echo htmlspecialchars($ref['contact_person'] ?: 'Reference'); ?></h4>
                                 </div>
                                 <button type="button" class="btn-remove-entry" onclick="removeReference(this)">Remove</button>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Contact Person</label>
-                                    <input type="text" name="references[<?php echo $index; ?>][contact_person]" value="<?php echo htmlspecialchars($ref['contact_person']); ?>">
+                                    <input type="text" name="references[<?php echo $index; ?>][contact_person]" 
+                                           value="<?php echo htmlspecialchars($ref['contact_person']); ?>">
                                 </div>
                                 <div class="form-group">
                                     <label>Company Name</label>
-                                    <input type="text" name="references[<?php echo $index; ?>][company_name]" value="<?php echo htmlspecialchars($ref['company_name'] ?? ''); ?>">
+                                    <input type="text" name="references[<?php echo $index; ?>][company_name]" 
+                                           value="<?php echo htmlspecialchars($ref['company_name'] ?? ''); ?>">
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Email</label>
-                                    <input type="email" name="references[<?php echo $index; ?>][email]" value="<?php echo htmlspecialchars($ref['email'] ?? ''); ?>">
+                                    <label>Email Address</label>
+                                    <input type="email" name="references[<?php echo $index; ?>][email]" 
+                                           value="<?php echo htmlspecialchars($ref['email'] ?? ''); ?>">
                                 </div>
                                 <div class="form-group">
-                                    <label>Phone</label>
-                                    <input type="tel" name="references[<?php echo $index; ?>][phone_number]" value="<?php echo htmlspecialchars($ref['phone_number'] ?? ''); ?>">
+                                    <label>Phone Number</label>
+                                    <input type="tel" name="references[<?php echo $index; ?>][phone_number]" 
+                                           value="<?php echo htmlspecialchars($ref['phone_number'] ?? ''); ?>">
                                 </div>
                             </div>
                         </div>
                         <?php endforeach; ?>
                     </div>
-                    <button type="button" class="btn-add" onclick="addReference()">+ Add Reference</button>
+                    <button type="button" class="btn-add" onclick="addReference()">Add Reference</button>
                 </div>
                 
                 <div class="btn-container">
-                    <button type="submit" class="btn-save">💾 Save Changes</button>
+                    <button type="submit" class="btn-save">Save All Changes</button>
                 </div>
             </form>
         </div>
@@ -824,6 +695,31 @@ closeDBConnection($conn);
         let experienceCount = <?php echo count($work_experience); ?>;
         let skillsCount = <?php echo count($skills); ?>;
         let referencesCount = <?php echo count($references); ?>;
+
+        // Photo preview
+        document.getElementById('photo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photoPreview');
+                    if (preview) {
+                        preview.src = e.target.result;
+                    } else {
+                        const container = document.querySelector('.photo-upload-wrapper');
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'current-photo';
+                        img.id = 'photoPreview';
+                        const previewDiv = document.createElement('div');
+                        previewDiv.className = 'photo-preview-container';
+                        previewDiv.appendChild(img);
+                        container.appendChild(previewDiv);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
         function addEducation() {
             const container = document.getElementById('education-container');
@@ -838,11 +734,11 @@ closeDBConnection($conn);
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Degree/Certification</label>
+                            <label>Degree / Certification</label>
                             <input type="text" name="education[${educationCount}][degree]">
                         </div>
                         <div class="form-group">
-                            <label>Institution</label>
+                            <label>Institution / School</label>
                             <input type="text" name="education[${educationCount}][institution]">
                         </div>
                     </div>
@@ -858,8 +754,8 @@ closeDBConnection($conn);
                     </div>
                     <div class="form-row full">
                         <div class="form-group">
-                            <label>Description/Honors</label>
-                            <textarea name="education[${educationCount}][description]"></textarea>
+                            <label>Description / Honors</label>
+                            <textarea name="education[${educationCount}][description]" placeholder="Achievements, honors, GPA, etc."></textarea>
                         </div>
                     </div>
                 </div>
@@ -889,13 +785,13 @@ closeDBConnection($conn);
                             <input type="text" name="work_experience[${experienceCount}][job_title]">
                         </div>
                         <div class="form-group">
-                            <label>Company/Employer</label>
+                            <label>Company / Employer</label>
                             <input type="text" name="work_experience[${experienceCount}][employer]">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>City/Location</label>
+                            <label>City / Location</label>
                             <input type="text" name="work_experience[${experienceCount}][city]">
                         </div>
                         <div class="form-group"></div>
@@ -912,8 +808,8 @@ closeDBConnection($conn);
                     </div>
                     <div class="form-row full">
                         <div class="form-group">
-                            <label>Job Description/Achievements</label>
-                            <textarea name="work_experience[${experienceCount}][description]"></textarea>
+                            <label>Job Description / Achievements</label>
+                            <textarea name="work_experience[${experienceCount}][description]" placeholder="Responsibilities, achievements, skills used..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -986,11 +882,11 @@ closeDBConnection($conn);
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Email</label>
+                            <label>Email Address</label>
                             <input type="email" name="references[${referencesCount}][email]">
                         </div>
                         <div class="form-group">
-                            <label>Phone</label>
+                            <label>Phone Number</label>
                             <input type="tel" name="references[${referencesCount}][phone_number]">
                         </div>
                     </div>
@@ -1003,6 +899,19 @@ closeDBConnection($conn);
         function removeReference(btn) {
             btn.closest('.reference-item').remove();
         }
+
+        // Form submission animation
+        document.getElementById('cvForm').addEventListener('submit', function() {
+            const btn = document.querySelector('.btn-save');
+            btn.textContent = 'Saving...';
+            btn.style.opacity = '0.7';
+            btn.disabled = true;
+        });
+
+        // Smooth scroll to top on success
+        <?php if ($success_message): ?>
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        <?php endif; ?>
     </script>
 </body>
-</html>
+</html>     
