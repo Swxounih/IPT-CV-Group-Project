@@ -33,13 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Delete old photo if exists
-            if (!empty($photo_path) && file_exists($photo_path)) {
-                unlink($photo_path);
+            if (!empty($photo_path) && file_exists('uploads/photos/' . $photo_path)) {
+                unlink('uploads/photos/' . $photo_path);
             }
 
-            // Generate unique filename
-            $photo_path = $upload_dir . uniqid('photo_', true) . '.' . $file_extension;
-            move_uploaded_file($_FILES['photo']['tmp_name'], $photo_path);
+            // Generate unique filename (store only filename, not full path)
+            $filename = uniqid('photo_', true) . '.' . $file_extension;
+            $photo_path = $filename;
+            move_uploaded_file($_FILES['photo']['tmp_name'], $upload_dir . $filename);
         } else {
             echo "<script>alert('Invalid file. Please upload a valid image (JPG, PNG, GIF, WEBP) under 5MB.');</script>";
         }
@@ -100,7 +101,7 @@ $data = $_SESSION['resume_data']['personal_info'] ?? array();
                 <div class="photo-section">
                     <div class="photo-upload">
                         <label for="photo" class="photo-preview" id="photoPreview">
-                            <img id="previewImage" src="<?php echo htmlspecialchars($data['photo'] ?? ''); ?>" alt="Preview">
+                            <img id="previewImage" src="<?php echo !empty($data['photo']) ? 'uploads/photos/' . htmlspecialchars($data['photo']) : ''; ?>" alt="Preview">
                             <div class="photo-placeholder">
                                 <div class="photo-text">Add photo</div>
                             </div>

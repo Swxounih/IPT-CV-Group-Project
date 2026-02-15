@@ -344,7 +344,7 @@ closeDBConnection($conn);
 <body>
     <div class="container">
         <div class="header">
-            <h1>Edit Your Resume</h1>
+            <h1>Edit Your CV</h1>
             <a href="dashboard.php" class="back-btn">Back to Dashboard</a>
         </div>
         

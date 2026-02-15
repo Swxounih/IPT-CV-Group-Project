@@ -105,13 +105,13 @@ SVG;
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h2>CV Builder</h2>
-                <p>Manage Your Resumes</p>
+                <h2>CV Manager</h2>
+                <p>Manage Your CVs</p>
             </div>
             <nav class="sidebar-nav">
                 <ul>
                     <li><a href="#" class="nav-link active" onclick="showSection('profile'); return false;">Profile</a></li>
-                    <li><a href="#" class="nav-link" onclick="showSection('my-resumes'); return false;">My Resumes</a></li>
+                    <li><a href="#" class="nav-link" onclick="showSection('my-resumes'); return false;">My CVs</a></li>
                     <li><a href="#" class="nav-link" onclick="showSection('account-settings'); return false;">Account Settings</a></li>
                 </ul>
             </nav>
@@ -128,7 +128,7 @@ SVG;
                     <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
                     <div>
                         <h1>Your Profile</h1>
-                        <p>Manage your personal information and resume settings</p>
+                        <p>Manage your personal information and CV settings</p>
                     </div>
                 </div>
 
@@ -179,20 +179,20 @@ SVG;
                 <div class="content-header">
                     <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
                     <div>
-                        <h1>My Resumes</h1>
-                        <p>View and manage all your resumes (<?php echo count($cvs); ?> total)</p>
+                        <h1>My CV</h1>
+                        <p>View and manage all your CVs (<?php echo count($cvs); ?> total)</p>
                     </div>
                 </div>
 
                 <!-- Recent Resumes -->
                 <section class="recent-resumes">
-                    <h2>Your Resumes</h2>
+                    <h2>Your Curriculum Vitae</h2>
                     <div class="resumes-list">
                         <?php if (!empty($cvs)): ?>
                             <?php foreach ($cvs as $cv): ?>
                                 <div class="resume-item">
                                     <div class="resume-info">
-                                        <h3><?php echo htmlspecialchars($cv['cv_title'] ?? 'My Resume'); ?></h3>
+                                        <h3><?php echo htmlspecialchars($cv['cv_title'] ?? 'My CV'); ?></h3>
                                         <p><strong><?php echo htmlspecialchars($cv['given_name'] . ' ' . $cv['surname']); ?></strong></p>
                                         <p>Last updated: <?php echo timeAgo($cv['updated_at']); ?></p>
                                         <?php if (!empty($cv['objective'])): ?>
@@ -209,8 +209,8 @@ SVG;
                         <?php else: ?>
                             <div class="resume-item">
                                 <div class="resume-info">
-                                    <h3>No resumes yet</h3>
-                                    <p>Create your first resume to get started!</p>
+                                    <h3>No CV yet</h3>
+                                    <p>Create your first CV to get started!</p>
                                 </div>
                                 <div class="resume-actions">
                                     <button class="btn-small btn-primary" onclick="window.location.href='personal-information.php'">Create Now</button>
@@ -222,7 +222,7 @@ SVG;
                 
                 <div style="margin-top: 20px; text-align: center;">
                     <button class="btn-primary btn-create-cv" onclick="createNewCV()">
-                        <span class="icon">+</span> Create New Resume
+                        <span class="icon">+</span> Create New CV
                     </button>
                 </div>
             </section>

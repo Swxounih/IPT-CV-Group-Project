@@ -18,7 +18,7 @@ require_once 'config.php';
   <!-- Navigation Bar -->
   <nav class="navbar">
     <div class="nav-container">
-      <div class="logo">Curriculum Vitae Manager</div>
+      <div class="logo">Curriculum Vitae </div>
       <button class="nav-btn active" onclick="showSection('main')">Home</button>
       <button class="nav-btn" onclick="showSection('search')">Search CV</button>
     </div>
@@ -30,7 +30,7 @@ require_once 'config.php';
     <!-- Main Section -->
     <section id="main" class="section active">
       <div class="section-content">
-        <h1>Welcome to CV Management System</h1>
+        <h1>Welcome to CV Manager</h1>
         <p>This is your professional CV management platform. Add and manage your professional information here.</p>
       
         
